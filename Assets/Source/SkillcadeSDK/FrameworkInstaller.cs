@@ -1,0 +1,30 @@
+﻿using SkillcadeSDK.Common;
+using SkillcadeSDK.DI;
+using SkillcadeSDK.WebRequests;
+using UnityEngine;
+using VContainer;
+
+#if UNITY_SERVER
+using MultiplayerSDK.GameLift;
+#endif
+
+namespace SkillcadeSDK
+{
+    public class FrameworkInstaller : MonoInstaller
+    {
+        [SerializeField] private WebBridge _webBridge;
+        
+        public override void Install(IContainerBuilder builder)
+        {
+            builder.Register<ContainerSingletonWrapper>(Lifetime.Singleton).AsImplementedInterfaces();
+            builder.Register<LayerProvider>(Lifetime.Singleton).AsImplementedInterfaces().AsSelf();
+            builder.Register<WebRequester>(Lifetime.Singleton);
+            
+            builder.RegisterInstance(_webBridge);
+            
+#if UNITY_SERVER
+            builder.RegisterEntryPoint<GameLiftInitializer>();
+#endif
+        }
+    }
+}
