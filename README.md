@@ -1,4 +1,4 @@
-# Skillcade Multiplayer SDK.
+# Skillcade Multiplayer SDK
 
 Made for creating different multiplayer games with similar architecture.
 It's a baseline for different netcode frameworks. This package doesn't have any bootstrapping or scene setup - look for specific framework-related extension of this package.
