@@ -1,13 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace SkillcadeSDK.Common.Players
 {
     public interface IPlayersController
     {
-        public event Action<int, IPlayerData> OnPlayerAdded;
-        public event Action<int, IPlayerData> OnPlayerDataUpdated;
-        public event Action<int, IPlayerData> OnPlayerRemoved;
+        public delegate void PlayerDataEventHandler(int playerId, IPlayerData data);
+        
+        public event PlayerDataEventHandler OnPlayerAdded;
+        public event PlayerDataEventHandler OnPlayerDataUpdated;
+        public event PlayerDataEventHandler OnPlayerRemoved;
 
         public IReadOnlyDictionary<int, IPlayerData> Players { get; }
         public int LocalPlayerId { get; }

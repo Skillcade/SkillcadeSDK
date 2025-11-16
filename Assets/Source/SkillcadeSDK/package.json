@@ -1,0 +1,10 @@
+{
+  "name": "com.skillcade.sdk",
+  "displayName": "Skillcade SDK",
+  "version": "0.1.0",
+  "unity": "2018.4",
+  "description": "SKD for creating multiplayer games in Skillcade infrastructure",
+  "dependencies": {
+    "jp.hadashikick.vcontainer": "1.16.9"
+  }
+}
