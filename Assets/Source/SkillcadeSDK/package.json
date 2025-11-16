@@ -5,6 +5,6 @@
   "unity": "2018.4",
   "description": "SKD for creating multiplayer games in Skillcade infrastructure",
   "dependencies": {
-    "jp.hadashikick.vcontainer": "1.16.9"
+    "com.unity.nuget.newtonsoft-json": "3.2.1"
   }
 }
