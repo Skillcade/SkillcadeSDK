@@ -1,10 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace SkillcadeSDK.Common.Players
 {
     public interface IPlayerData
     {
+        public event Action OnChanged;
+        
         public int PlayerNetworkId { get; set; }
         
         public void SetDataOnServer<T>(string key, T data);
