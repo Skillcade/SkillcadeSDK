@@ -6,7 +6,7 @@ namespace SkillcadeSDK.Common.Players
 {
     public interface IPlayerData
     {
-        public event Action OnChanged;
+        public event Action<IPlayerData> OnChanged;
         
         public int PlayerNetworkId { get; set; }
         
