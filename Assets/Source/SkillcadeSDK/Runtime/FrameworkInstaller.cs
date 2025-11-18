@@ -1,4 +1,5 @@
 ﻿using SkillcadeSDK.Common;
+using SkillcadeSDK.Common.Level;
 using SkillcadeSDK.DI;
 using SkillcadeSDK.WebRequests;
 using UnityEngine;
@@ -19,6 +20,7 @@ namespace SkillcadeSDK
             builder.Register<ContainerSingletonWrapper>(Lifetime.Singleton).AsImplementedInterfaces();
             builder.Register<LayerProvider>(Lifetime.Singleton).AsImplementedInterfaces().AsSelf();
             builder.Register<WebRequester>(Lifetime.Singleton);
+            builder.Register<RespawnServiceProvider>(Lifetime.Singleton);
             
             builder.RegisterInstance(_webBridge);
             
