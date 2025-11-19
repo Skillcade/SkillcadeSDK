@@ -5,10 +5,6 @@ using SkillcadeSDK.WebRequests;
 using UnityEngine;
 using VContainer;
 
-#if UNITY_SERVER
-using MultiplayerSDK.GameLift;
-#endif
-
 namespace SkillcadeSDK
 {
     public class FrameworkInstaller : MonoInstaller
@@ -23,10 +19,6 @@ namespace SkillcadeSDK
             builder.Register<RespawnServiceProvider>(Lifetime.Singleton);
             
             builder.RegisterInstance(_webBridge);
-            
-#if UNITY_SERVER
-            builder.RegisterEntryPoint<GameLiftInitializer>();
-#endif
         }
     }
 }

@@ -3,28 +3,21 @@ using System;
 using System.Collections.Generic;
 using Aws.GameLift.Server;
 using Aws.GameLift.Server.Model;
-using SkillcadeSDK.Connection;
-using UnityEngine;
 using VContainer;
 using VContainer.Unity;
+#endif
+
+using SkillcadeSDK.Connection;
+using UnityEngine;
 
 namespace SkillcadeSDK.GameLift
 {
-    public class GameLiftInitializer : IInitializable, IDisposable
+    public class GameLiftInitializer : MonoBehaviour
     {
-        [Inject] private readonly IConnectionController _connectionController;
-        
-        public void Initialize()
+        [SerializeField] private ConnectionConfig _connectionConfig;
+#if UNITY_SERVER
+        private void Start()
         {
-            _connectionController.OnStateChanged += OnConnectionStateChanged;
-        }
-
-        private void OnConnectionStateChanged(ConnectionState state)
-        {
-            if (state != ConnectionState.Hosting)
-                return;
-
-            Debug.Log("[GameLiftInitializer] Server connected, initializing game lift services");
             InitializeGameLiftServer();
         }
 
@@ -47,7 +40,7 @@ namespace SkillcadeSDK.GameLift
                 OnUpdateSession,
                 OnProcessTerminate,
                 OnHealthCheck,
-                _connectionController.ActiveConfig.ServerListenPort,
+                _connectionConfig.ServerListenPort,
                 new LogParameters(logFileNames));
             
             var processReadyResult = GameLiftServerAPI.ProcessReady(processParameters);
@@ -83,6 +76,6 @@ namespace SkillcadeSDK.GameLift
         {
             GameLiftServerAPI.Destroy();
         }
+#endif
     }
 }
-#endif
