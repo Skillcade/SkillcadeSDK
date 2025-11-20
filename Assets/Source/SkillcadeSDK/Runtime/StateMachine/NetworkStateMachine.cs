@@ -24,7 +24,7 @@ namespace SkillcadeSDK.StateMachine
         private INetworkState<TStateType> _currentState;
         private Dictionary<TStateType, INetworkState<TStateType>> _typedStates;
 
-        public void Initialize()
+        public virtual void Initialize()
         {
             _typedStates = _states.ToDictionary(x => x.Type);
             foreach (var state in _states)
@@ -49,7 +49,7 @@ namespace SkillcadeSDK.StateMachine
                 initState.OnEnter(currentStateType);
         }
 
-        public void Dispose()
+        public virtual void Dispose()
         {
             foreach (var state in _states)
             {
@@ -59,7 +59,7 @@ namespace SkillcadeSDK.StateMachine
             _stateMachineSyncer.StateChanged -= OnStateChanged;
         }
 
-        public void Tick()
+        public virtual void Tick()
         {
             _currentState?.Update();
         }
