@@ -2,9 +2,9 @@
 
 namespace SkillcadeSDK.Common.Players
 {
-    public interface IPlayersController
+    public interface IPlayersController<TData, TDataContainer> where TData : IPlayerData<TData, TDataContainer>
     {
-        public delegate void PlayerDataEventHandler(int playerId, IPlayerData data);
+        public delegate void PlayerDataEventHandler(int playerId, TData data);
         
         public event PlayerDataEventHandler OnPlayerAdded;
         public event PlayerDataEventHandler OnPlayerDataUpdated;
@@ -12,7 +12,7 @@ namespace SkillcadeSDK.Common.Players
         
         public int LocalPlayerId { get; }
         
-        public bool TryGetPlayerData(int playerId, out IPlayerData data);
-        public IEnumerable<IPlayerData> GetAllPlayersData();
+        public bool TryGetPlayerData(int playerId, out TData data);
+        public IEnumerable<TData> GetAllPlayersData();
     }
 }

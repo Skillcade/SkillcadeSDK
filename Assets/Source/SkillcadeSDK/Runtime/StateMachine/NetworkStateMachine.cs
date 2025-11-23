@@ -32,10 +32,16 @@ namespace SkillcadeSDK.StateMachine
                 state.SetStateMachine(this);
             }
             
+            _stateMachineSyncer.OnNetworkStart += OnNetworkStart;
+            _stateMachineSyncer.OnNetworkStop += OnNetworkStop;
             _stateMachineSyncer.StateChanged += OnStateChanged;
-            if (!_stateMachineSyncer.IsServer)
-                return;
+        }
 
+        protected virtual void OnNetworkStart()
+        {
+            if (IsServer)
+                return;
+            
             var currentStateType = CurrentStateType;
             if (!_typedStates.TryGetValue(currentStateType, out var initState))
             {
@@ -47,7 +53,11 @@ namespace SkillcadeSDK.StateMachine
                 initState.OnEnterWithData(currentStateType, _stateMachineSyncer.CurrentState.JsonData);
             else
                 initState.OnEnter(currentStateType);
+
+            _currentState = initState;
         }
+
+        protected virtual void OnNetworkStop() { }
 
         public virtual void Dispose()
         {
@@ -56,14 +66,11 @@ namespace SkillcadeSDK.StateMachine
                 state.CleanupStateMachine();
             }
             
+            _stateMachineSyncer.OnNetworkStart -= OnNetworkStart;
+            _stateMachineSyncer.OnNetworkStop -= OnNetworkStop;
             _stateMachineSyncer.StateChanged -= OnStateChanged;
         }
 
-        public virtual void Tick()
-        {
-            _currentState?.Update();
-        }
-        
         public void SetStateServer(TStateType stateType)
         {
             if (!_stateMachineSyncer.IsServer)
@@ -78,7 +85,7 @@ namespace SkillcadeSDK.StateMachine
             
             SetStateServerInternal(nextState, null);
         }
-        
+
         public void SetStateServer<T>(TStateType stateType, T data)
         {
             if (!_stateMachineSyncer.IsServer)
@@ -123,6 +130,9 @@ namespace SkillcadeSDK.StateMachine
         {
             var prevType = prev.GetType<TStateType>();
             var nextType = next.GetType<TStateType>();
+
+            if (_currentState != null && _comparer.Equals(_currentState.Type, nextType))
+                return;
             
             if (!string.IsNullOrWhiteSpace(next.JsonData))
                 Debug.Log($"[NetworkStateMachine] On state changed from {prevType} to {nextType}, data: {next.JsonData}");
@@ -152,6 +162,11 @@ namespace SkillcadeSDK.StateMachine
             {
                 Debug.LogError($"[NetworkStateMachine] Error on entering state: {next.Type}: {e}");
             }
+        }
+
+        public virtual void Tick()
+        {
+            _currentState?.Update();
         }
     }
 }

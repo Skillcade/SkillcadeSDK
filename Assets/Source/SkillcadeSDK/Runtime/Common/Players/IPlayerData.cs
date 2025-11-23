@@ -4,15 +4,14 @@ using UnityEngine;
 
 namespace SkillcadeSDK.Common.Players
 {
-    public interface IPlayerData
+    public interface IPlayerData<TData, TDataContainer> where TData : IPlayerData<TData, TDataContainer>
     {
-        public event Action<IPlayerData> OnChanged;
+        public event Action<TData> OnChanged;
         
-        public int PlayerNetworkId { get; set; }
+        public int PlayerNetworkId { get; }
         
-        public void SetDataOnServer<T>(string key, T data);
-        public void SetDataOnLocalClient<T>(string key, T data);
-        public bool TryGetData<T>(string key, out T data);
+        public void SetData<T>(string key, T data) where T : TDataContainer;
+        public bool TryGetData<T>(string key, out T data) where T : TDataContainer;
         
         public void AddPlayerObject<T>(T instance) where T : MonoBehaviour;
         public void RemovePlayerObject<T>(T instance) where T : MonoBehaviour;

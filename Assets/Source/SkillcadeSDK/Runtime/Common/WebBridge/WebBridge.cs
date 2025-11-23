@@ -12,6 +12,7 @@ using VContainer.Unity;
 public class WebBridge : MonoBehaviour, IInitializable, IDisposable
 {
     public WebPayload Payload { get; private set; }
+    public bool UsePayload => _useWebBridge;
     
     [Inject] private readonly IConnectionController _connectionController;
     
@@ -23,7 +24,7 @@ public class WebBridge : MonoBehaviour, IInitializable, IDisposable
     [DllImport("__Internal")]
     private static extern void ConnectedToServer();
 
-    [SerializeField] private bool _sendMessages;
+    [SerializeField] private bool _useWebBridge;
 
     public void Initialize()
     {
@@ -38,7 +39,7 @@ public class WebBridge : MonoBehaviour, IInitializable, IDisposable
 
     public void TriggerLoaded()
     {
-        if (!_sendMessages)
+        if (!_useWebBridge)
             return;
         
         Debug.Log("Trigger GameLoaded");
@@ -49,7 +50,7 @@ public class WebBridge : MonoBehaviour, IInitializable, IDisposable
 
     public void TriggerConnected()
     {
-        if (!_sendMessages)
+        if (!_useWebBridge)
             return;
 
         Debug.Log("Trigger ConnectedToServer");

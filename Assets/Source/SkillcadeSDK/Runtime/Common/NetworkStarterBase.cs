@@ -19,7 +19,6 @@ namespace SkillcadeSDK.Common
         [Header("Platform auto connection settings")]
         [SerializeField] private ConnectionMode _dedicatedServerMode;
         [SerializeField] private ConnectionMode _webGlMode;
-        [SerializeField] private bool _clientConnectFromPayload;
         
         [Header("Default connection settings")]
         [SerializeField] private ConnectionMode _connectionMode;
@@ -52,7 +51,7 @@ namespace SkillcadeSDK.Common
             }
             else if (_connectionMode == ConnectionMode.Client)
             {
-                if (_clientConnectFromPayload)
+                if (_webBridge.UsePayload)
                     WaitForPayloadAndConnect(destroyCancellationToken);
                 else
                     StartCoroutine(WaitAndStart(_connectionMode));
