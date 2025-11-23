@@ -18,20 +18,6 @@ Here are list of existing framework-related extensions:
 
 Just follow any preferred way in instructions: https://vcontainer.hadashikick.jp/getting-started/installation
 
-### Install Amazon GameLift SDK
-
-1 - Create new Scoped Registry in Package Manager.
-  
-    Name: Unity NuGeT
-    URL: https://unitynuget-registry.openupm.com
-    Scope: org.nuget
-    
-2 - Download file com.amazonaws.gameliftserver.sdk-5.4.0.tgz from the root of this repository
-
-3 - Open Package Manager inside your project and click 'install package from tarball'
-
-4 - Select downloaded .tgz archive
-
 ### Install Skillcade SKD
 
 1 - Open Package Manager inside your project and click 'install package from git URL'

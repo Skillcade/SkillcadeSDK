@@ -1,7 +1,7 @@
 {
   "name": "com.skillcade.sdk",
   "displayName": "Skillcade SDK",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "unity": "2018.4",
   "author": "Skillcade",
   "description": "SKD for creating multiplayer games in Skillcade infrastructure",
