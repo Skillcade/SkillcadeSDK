@@ -4,32 +4,55 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SkillcadeSDK.Connection;
+using SkillcadeSDK.ServerValidation;
 using UnityEngine;
 using VContainer;
 
 namespace SkillcadeSDK.WebRequests
 {
+#if UNITY_SERVER
     public class WebRequester
     {
         private const string BaseUri = "https://demo.skillcade.com";
         private const string MediaTypeJson = "application/json";
+        private const string TokenHeaderKey = "change-me-server-token";
 
         [Inject] private readonly IConnectionController _connectionController;
+        [Inject] private readonly ServerPayloadController _serverPayloadController;
 
-        public async Task SendWinner(string matchId, string winnerId)
+        public async Task SendWinner(string winnerId)
         {
             if (_connectionController.ConnectionState != ConnectionState.Hosting)
                 return;
-            
-            if (string.IsNullOrEmpty(matchId) || string.IsNullOrEmpty(winnerId))
+
+            if (_serverPayloadController.Payload == null)
             {
-                Debug.LogError("[WebRequester] Match id and winner id are empty");
+                Debug.LogError("[WebRequester] Server payload is null");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(_serverPayloadController.Payload.MatchId))
+            {
+                Debug.LogError("[WebRequester] Match id is empty");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(_serverPayloadController.Payload.ServerAuthToken))
+            {
+                Debug.LogError("[WebRequester] Server auth token is empty");
+                return;
+            }
+            
+            if (string.IsNullOrEmpty(winnerId))
+            {
+                Debug.LogError("[WebRequester] Winner id are empty");
                 return;
             }
 
             var httpClient = new HttpClient
             {
-                BaseAddress = new Uri(BaseUri)
+                BaseAddress = new Uri(BaseUri),
+                DefaultRequestHeaders = {  { TokenHeaderKey, _serverPayloadController.Payload.ServerAuthToken } }
             };
 
             var request = new ChooseWinnerRequest
@@ -37,7 +60,8 @@ namespace SkillcadeSDK.WebRequests
                 WinnerId = winnerId
             };
 
-            Debug.Log($"[WebRequester] Sending winner request, match id: {matchId}, winnerId: {winnerId}");
+            string matchId = _serverPayloadController.Payload.MatchId;
+            Debug.Log($"[WebRequester] Sending winner request, match id: {matchId}, winnerId: {winnerId}, token: {_serverPayloadController.Payload.ServerAuthToken}");
             
             try
             {
@@ -56,4 +80,5 @@ namespace SkillcadeSDK.WebRequests
             }
         }
     }
+#endif
 }
