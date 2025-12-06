@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using VContainer;
 using VContainer.Unity;
 
 namespace SkillcadeSDK.ServerValidation
@@ -10,10 +11,13 @@ namespace SkillcadeSDK.ServerValidation
     public class ServerPayloadController : IInitializable
     {
         public ServerPayload Payload { get; private set; }
+
+        [Inject] private readonly WebBridge _webBridge;
         
         public void Initialize()
         {
-            ReadPayload();
+            if (_webBridge.UsePayload)
+                ReadPayload();
         }
         
         private void ReadPayload()
