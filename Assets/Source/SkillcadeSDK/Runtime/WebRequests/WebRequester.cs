@@ -15,7 +15,7 @@ namespace SkillcadeSDK.WebRequests
     {
         private const string BaseUri = "https://demo.skillcade.com";
         private const string MediaTypeJson = "application/json";
-        private const string TokenHeaderKey = "change-me-server-token";
+        private const string TokenHeaderKey = " X-Game-Server-Token";
 
         [Inject] private readonly IConnectionController _connectionController;
         [Inject] private readonly ServerPayloadController _serverPayloadController;
