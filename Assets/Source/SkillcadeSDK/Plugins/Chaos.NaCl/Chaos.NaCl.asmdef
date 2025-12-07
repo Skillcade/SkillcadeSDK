@@ -1,10 +1,7 @@
 {
-    "name": "SkillcadeSDK",
+    "name": "Chaos.NaCl",
     "rootNamespace": "",
-    "references": [
-        "GUID:b0214a6008ed146ff8f122a6a9c2f6cc",
-        "GUID:aee2b6cba7749f548864c0d26a3cec95"
-    ],
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

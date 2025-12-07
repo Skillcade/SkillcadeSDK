@@ -7,6 +7,7 @@ using VContainer;
 #if UNITY_SERVER
 using SkillcadeSDK.ServerValidation;
 using SkillcadeSDK.WebRequests;
+namespace SkillcadeSDK.ServerValidation
 #endif
 
 namespace SkillcadeSDK
@@ -23,6 +24,7 @@ namespace SkillcadeSDK
 
 #if UNITY_SERVER
             builder.Register<WebRequester>(Lifetime.Singleton);
+            builder.Register<SessionValidator>(Lifetime.Singleton);
             builder.Register<ServerPayloadController>(Lifetime.Singleton).AsImplementedInterfaces().AsSelf();
 #endif
             
