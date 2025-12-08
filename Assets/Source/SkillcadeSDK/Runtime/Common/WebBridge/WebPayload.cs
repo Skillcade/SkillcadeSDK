@@ -5,8 +5,8 @@ namespace SkillcadeSDK.Common
     [JsonObject]
     public class WebPayload
     {
-        [JsonProperty("matchId")]
-        public string MatchId;
+        [JsonProperty("joinToken")]
+        public string JoinToken;
         
         [JsonProperty("nickname")]
         public string Nickname;
