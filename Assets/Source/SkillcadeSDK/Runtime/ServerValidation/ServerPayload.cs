@@ -1,10 +1,10 @@
-﻿using System;
+﻿#if UNITY_SERVER
+using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
 namespace SkillcadeSDK.ServerValidation
 {
-#if UNITY_SERVER
     public class ServerPayload
     {
         [ServerPayloadVariable("MATCH_ID")]
@@ -16,8 +16,7 @@ namespace SkillcadeSDK.ServerValidation
         [ServerPayloadVariable("SESSION_PUBLIC_KEY")]
         public string SessionPublicKey;
         
-        [ServerPayloadVariable("SESSION_EXPIRES_AT")]
-        [JsonConverter(typeof(UnixDateTimeConverter))]
+        [ServerPayloadVariable("SESSION_EXPIRES_AT", typeof(DateTimeVariableReader))]
         public DateTime SessionExpiresAt;
 
         [JsonIgnore]
@@ -26,5 +25,5 @@ namespace SkillcadeSDK.ServerValidation
         [JsonIgnore]
         public byte[] PublicKeyBytes;
     }
-#endif
 }
+#endif

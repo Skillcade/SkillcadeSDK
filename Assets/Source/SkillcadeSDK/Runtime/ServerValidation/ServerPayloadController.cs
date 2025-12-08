@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if UNITY_SERVER
+using System;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -9,7 +10,6 @@ using VContainer.Unity;
 
 namespace SkillcadeSDK.ServerValidation
 {
-#if UNITY_SERVER
     public class ServerPayloadController : IInitializable
     {
         public ServerPayload Payload { get; private set; }
@@ -38,14 +38,17 @@ namespace SkillcadeSDK.ServerValidation
                     var fieldValue = Environment.GetEnvironmentVariable(attribute.Name);
                     if (fieldValue == null) continue;
 
-                    if (field.FieldType == typeof(string))
+                    Debug.Log($"[ServerPayloadController] Got variable {attribute.Name} - {fieldValue}");
+                    if (attribute.ReaderType == null || !attribute.ReaderType.GetInterfaces().Contains(typeof(IServerVariableReader)))
                     {
                         field.SetValue(payload, fieldValue);
-                        Debug.Log($"[ServerPayloadController] Got string variable {attribute.Name} - {fieldValue}");
+                        Debug.Log("[ServerPayloadController] Passing variable as string");
                     }
                     else
                     {
-                        var value = JsonConvert.DeserializeObject(fieldValue, field.FieldType);
+                        Debug.Log($"[ServerPayloadController] Reading variable with reader {attribute.ReaderType.Name}");
+                        var reader = Activator.CreateInstance(attribute.ReaderType) as IServerVariableReader;
+                        var value = reader.Read(fieldValue);
                         field.SetValue(payload, value);
                         Debug.Log($"[ServerPayloadController] Got {field.FieldType.Name} variable {attribute.Name} - {value}");
                     }
@@ -104,5 +107,5 @@ namespace SkillcadeSDK.ServerValidation
             }
         }
     }
-#endif
 }
+#endif
