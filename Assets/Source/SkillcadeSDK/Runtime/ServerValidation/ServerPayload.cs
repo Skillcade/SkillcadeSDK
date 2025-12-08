@@ -20,9 +20,6 @@ namespace SkillcadeSDK.ServerValidation
         public DateTime SessionExpiresAt;
 
         [JsonIgnore]
-        public SessionTokenPayload ServerTokenPayload;
-
-        [JsonIgnore]
         public byte[] PublicKeyBytes;
     }
 }

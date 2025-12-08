@@ -13,7 +13,7 @@ namespace SkillcadeSDK.ServerValidation
         
         public SessionTokenPayload ValidateToken(string token)
         {
-            var (payloadBytes, signatureBytes) = _serverPayloadController.DecodeToken(token);
+            var (payloadBytes, signatureBytes) = DecodeToken(token);
             if (!Ed25519.Verify(signatureBytes, payloadBytes, _serverPayloadController.Payload.PublicKeyBytes))
                 throw new InvalidOperationException("Invalid join token signature.");
 
@@ -21,13 +21,33 @@ namespace SkillcadeSDK.ServerValidation
             var payload = JsonConvert.DeserializeObject<SessionTokenPayload>(payloadJson)
                           ?? throw new InvalidOperationException("Unable to parse join token payload.");
 
-            if (!string.Equals(payload.GameSessionId, _serverPayloadController.Payload.ServerTokenPayload.GameSessionId, StringComparison.Ordinal))
+            if (!string.Equals(payload.GameSessionId, _serverPayloadController.Payload.MatchId, StringComparison.Ordinal))
                 throw new InvalidOperationException("Join token was issued for a different session.");
 
             if (payload.ExpiresAtUtc <= DateTime.UtcNow)
                 throw new InvalidOperationException("Join token or session has expired.");
 
             return payload;
+        }
+        
+        private static (byte[] Payload, byte[] Signature) DecodeToken(string token)
+        {
+            var parts = token.Split('.', 2);
+            if (parts.Length != 2)
+            {
+                throw new InvalidOperationException("Join token format is invalid.");
+            }
+
+            try
+            {
+                var payload = Convert.FromBase64String(parts[0]);
+                var signature = Convert.FromBase64String(parts[1]);
+                return (payload, signature);
+            }
+            catch (FormatException ex)
+            {
+                throw new InvalidOperationException("Join token parts are not valid Base64.", ex);
+            }
         }
     }
 }
