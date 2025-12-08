@@ -7,7 +7,6 @@ using VContainer;
 #if UNITY_SERVER
 using SkillcadeSDK.ServerValidation;
 using SkillcadeSDK.WebRequests;
-namespace SkillcadeSDK.ServerValidation
 #endif
 
 namespace SkillcadeSDK
