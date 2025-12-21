@@ -5,8 +5,8 @@ namespace SkillcadeSDK.Replays.Components
 {
     public abstract class ReplayObjectHandler : MonoBehaviour
     {
-        protected abstract int NetworkPrefabId { get; }
-        protected abstract int NetworkObjectId { get; }
+        public abstract int NetworkPrefabId { get; }
+        public abstract int NetworkObjectId { get; }
 
         [Inject] private readonly ReplayService _replayService;
         

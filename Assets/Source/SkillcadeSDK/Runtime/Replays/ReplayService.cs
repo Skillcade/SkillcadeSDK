@@ -28,6 +28,23 @@ namespace SkillcadeSDK.Replays
         {
         }
 
+        public void AddEvent(ReplayEvent replayEvent)
+        {
+            _pendingEvents.Add(replayEvent);
+        }
+
+        public void RegisterObjectHandler(ReplayObjectHandler handler)
+        {
+            _activeObjects.Add(handler);
+            AddEvent(new ObjectCreatedEvent(handler.NetworkObjectId, handler.NetworkPrefabId));
+        }
+
+        public void UnregisterObjectHandler(ReplayObjectHandler handler)
+        {
+            _activeObjects.Remove(handler);
+            AddEvent(new ObjectDestroyedEvent(handler.NetworkObjectId, handler.NetworkPrefabId));
+        }
+
         protected void StartWrite()
         {
             _replayData.Clear();
@@ -89,21 +106,6 @@ namespace SkillcadeSDK.Replays
             var frameData = stream.ToArray();
             _replayData.Add(frameData);
             Debug.Log($"[ReplayService] Frame {tick} read {frameData.Length} bytes from {_activeObjects.Count} objects");
-        }
-
-        public void RegisterObjectHandler(ReplayObjectHandler handler)
-        {
-            _activeObjects.Add(handler);
-        }
-
-        public void UnregisterObjectHandler(ReplayObjectHandler handler)
-        {
-            _activeObjects.Remove(handler);
-        }
-
-        public void AddEvent(ReplayEvent replayEvent)
-        {
-            _pendingEvents.Add(replayEvent);
         }
     }
 }
