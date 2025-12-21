@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using SkillcadeSDK.Replays.Components;
 
 namespace SkillcadeSDK.Replays
 {
@@ -8,12 +7,15 @@ namespace SkillcadeSDK.Replays
         private readonly BinaryWriter _writer;
         public ReplayWriter(BinaryWriter writer) => _writer = writer;
         
-        public void Write(ReplayComponent component)
+        public void Write(IReplayDataObject dataObject)
         {
-            WriteInt(component.Id);
-            WriteInt(component.Size);
-            component.Write(this);
+            var id = ReplayDataObjectsRegistry.TypeToId[dataObject.GetType()];
+            WriteInt(id);
+            WriteInt(dataObject.Size);
+            dataObject.Write(this);
         }
+        
+        public int GetSize(IReplayDataObject dataObject) => dataObject.Size + sizeof(int);
 
         public void WriteInt(int value)
         {

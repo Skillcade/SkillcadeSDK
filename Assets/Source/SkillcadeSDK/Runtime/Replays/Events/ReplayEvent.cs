@@ -1,12 +1,10 @@
-﻿using UnityEngine;
-
-namespace SkillcadeSDK.Replays.Components
+﻿namespace SkillcadeSDK.Replays.Events
 {
-    public abstract class ReplayComponent : MonoBehaviour
+    public abstract class ReplayEvent : IReplayDataObject
     {
-        public abstract int Id { get; }
         public abstract int Size { get; }
 
+        public abstract void Handle();
         public abstract void Read(ReplayReader reader);
         public abstract void Write(ReplayWriter writer);
     }

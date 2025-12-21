@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using SkillcadeSDK.Replays.Components;
+using SkillcadeSDK.Replays.Events;
 using UnityEngine;
 using VContainer.Unity;
 
@@ -17,6 +18,8 @@ namespace SkillcadeSDK.Replays
         private readonly List<ReplayObjectHandler> _activeObjects = new();
         private readonly List<byte[]> _replayData = new();
 
+        private readonly List<ReplayEvent> _pendingEvents = new();
+
         public virtual void Initialize()
         {
         }
@@ -28,6 +31,7 @@ namespace SkillcadeSDK.Replays
         protected void StartWrite()
         {
             _replayData.Clear();
+            _pendingEvents.Clear();
             GC.Collect();
         }
 
@@ -42,6 +46,7 @@ namespace SkillcadeSDK.Replays
 
             Debug.Log($"[ReplayService] Replay for {_replayData.Count} frames was written to {filePath}");
             _replayData.Clear();
+            _pendingEvents.Clear();
             GC.Collect();
         }
 
@@ -52,8 +57,30 @@ namespace SkillcadeSDK.Replays
             
             var writer = new ReplayWriter(binaryWriter);
             writer.WriteInt(tick);
-            writer.WriteInt(_activeObjects.Count);
 
+            int eventsSize = sizeof(int);
+            foreach (var pendingEvent in _pendingEvents)
+            {
+                eventsSize += writer.GetSize(pendingEvent);
+            }
+
+            writer.WriteInt(eventsSize);
+            writer.WriteInt(_pendingEvents.Count);
+            foreach (var pendingEvent in _pendingEvents)
+            {
+                writer.Write(pendingEvent);
+            }
+            
+            _pendingEvents.Clear();
+            
+            int objectsSize = sizeof(int);
+            foreach (var objectHandler in _activeObjects)
+            {
+                objectsSize += objectHandler.GetSize(writer);
+            }
+            
+            writer.WriteInt(objectsSize);
+            writer.WriteInt(_activeObjects.Count);
             foreach (var objectHandler in _activeObjects)
             {
                 objectHandler.Write(writer);
@@ -72,6 +99,11 @@ namespace SkillcadeSDK.Replays
         public void UnregisterObjectHandler(ReplayObjectHandler handler)
         {
             _activeObjects.Remove(handler);
+        }
+
+        public void AddEvent(ReplayEvent replayEvent)
+        {
+            _pendingEvents.Add(replayEvent);
         }
     }
 }

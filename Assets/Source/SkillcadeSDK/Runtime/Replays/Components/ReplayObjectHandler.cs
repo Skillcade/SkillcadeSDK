@@ -8,9 +8,15 @@ namespace SkillcadeSDK.Replays.Components
         protected abstract int NetworkPrefabId { get; }
         protected abstract int NetworkObjectId { get; }
 
-        [SerializeField] private ReplayComponent[] _replayComponents;
-
         [Inject] private readonly ReplayService _replayService;
+        
+        private IReplayComponent[] _replayComponents;
+
+        protected virtual void Awake()
+        {
+            _replayComponents = GetComponentsInChildren<IReplayComponent>();
+            this.InjectToMe();
+        }
 
         public void Register()
         {
@@ -32,6 +38,17 @@ namespace SkillcadeSDK.Replays.Components
             {
                 writer.Write(component);
             }
+        }
+
+        public int GetSize(ReplayWriter writer)
+        {
+            int size = sizeof(int) * 3;
+            foreach (var component in _replayComponents)
+            {
+                size += writer.GetSize(component);
+            }
+            
+            return size;
         }
     }
 }
