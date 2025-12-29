@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using SkillcadeSDK.Connection;
 using UnityEngine;
 using VContainer;
+using VContainer.Unity;
 
 namespace SkillcadeSDK.Common
 {
@@ -14,7 +15,7 @@ namespace SkillcadeSDK.Common
         Server
     }
     
-    public class NetworkStarterBase : MonoBehaviour
+    public class NetworkStarterBase : MonoBehaviour, IInitializable
     {
         [Header("Platform auto connection settings")]
         [SerializeField] private ConnectionMode _dedicatedServerMode;
@@ -28,8 +29,8 @@ namespace SkillcadeSDK.Common
         [Inject] private readonly WebBridge _webBridge;
 
         private ConnectionData _data;
-        
-        private void Start()
+
+        public virtual void Initialize()
         {
             if (_config == null)
             {

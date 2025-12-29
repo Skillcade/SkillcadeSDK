@@ -18,6 +18,8 @@ namespace SkillcadeSDK.Common
         private void OnEnable()
         {
             this.InjectToMe();
+            if (_layerProvider == null)
+                return;
             
             _layerProvider.CollisionsStateChanged += OnCollisionStateChanged;
             if (_layerProvider.CollisionsEnabled)
@@ -26,6 +28,8 @@ namespace SkillcadeSDK.Common
 
         private void OnDisable()
         {
+            if (_layerProvider == null)
+                return;
             _layerProvider.CollisionsStateChanged -= OnCollisionStateChanged;
             ReturnLayer();
         }

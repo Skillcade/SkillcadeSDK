@@ -4,8 +4,10 @@
     {
         public abstract int Size { get; }
 
-        public abstract void Handle();
         public abstract void Read(ReplayReader reader);
         public abstract void Write(ReplayWriter writer);
+
+        public abstract void Handle();
+        public abstract void Undo();
     }
 }

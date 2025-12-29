@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections;
 using UnityEngine;
+using VContainer.Unity;
 
 namespace SkillcadeSDK.Connection
 {
-    public abstract class ConnectionControllerBase : MonoBehaviour, IConnectionController, IDisposable
+    public abstract class ConnectionControllerBase : MonoBehaviour, IInitializable, IConnectionController, IDisposable
     {
         public event Action<ConnectionState> OnStateChanged;
         public event Action<DisconnectionReason> OnDisconnected;
@@ -17,7 +18,7 @@ namespace SkillcadeSDK.Connection
         private Coroutine _reconnectCoroutine;
         private WaitForSeconds _reconnectWait;
 
-        protected virtual void Start()
+        public virtual void Initialize()
         {
             Transport.OnConnected += OnTransportConnected;
             Transport.OnDisconnected += OnTransportDisconnected;

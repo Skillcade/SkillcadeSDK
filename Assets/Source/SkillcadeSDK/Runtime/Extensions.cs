@@ -26,5 +26,49 @@ namespace SkillcadeSDK
 
         public static bool IsConnectedOrHosting(this ConnectionState connectionState) =>
             connectionState is ConnectionState.Connected or ConnectionState.Hosting;
+
+        public static void Destroy(this GameObject target)
+        {
+            if (target != null)
+                GameObject.Destroy(target);
+        }
+
+        public static void DestroyImmediate(this GameObject target)
+        {
+            if (target != null)
+                GameObject.DestroyImmediate(target);
+        }
+
+        public static void DestroyGameObject(this MonoBehaviour target)
+        {
+            if (target != null)
+                GameObject.Destroy(target.gameObject);
+        }
+
+        public static void DestroyGameObjectImmediate(this MonoBehaviour target)
+        {
+            if (target != null)
+                GameObject.DestroyImmediate(target.gameObject);
+        }
+
+        public static GameObject Instantiate(this GameObject prefab)
+        {
+            return GameObject.Instantiate(prefab);
+        }
+
+        public static GameObject Instantiate(this GameObject prefab, Vector3 position, Quaternion rotation)
+        {
+            return GameObject.Instantiate(prefab, position, rotation);
+        }
+
+        public static T Instantiate<T>(this T prefab) where T : MonoBehaviour
+        {
+            return GameObject.Instantiate(prefab);
+        }
+
+        public static T Instantiate<T>(this T prefab, Vector3 position, Quaternion rotation) where T : MonoBehaviour
+        {
+            return GameObject.Instantiate(prefab, position, rotation);
+        }
     }
 }
