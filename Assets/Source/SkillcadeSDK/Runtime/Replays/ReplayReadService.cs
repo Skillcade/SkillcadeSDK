@@ -10,8 +10,6 @@ namespace SkillcadeSDK.Replays
 {
     public class ReplayReadService : MonoBehaviour
     {
-        private const string FileName = "replay.txt";
-        
         private class FrameData
         {
             public int Tick;
@@ -42,11 +40,10 @@ namespace SkillcadeSDK.Replays
         public void RegisterObject(ReplayObjectHandler handler) => _replayObjects.Add(handler.ObjectId, handler);
         public void DeleteObject(int id, out ReplayObjectHandler handler) => _replayObjects.Remove(id, out handler);
         
-        [ContextMenu("Read replay")]
-        public void ReadReplay()
+        public void ReadReplay(ReplayFileResult fileResult)
         {
             ReplayDataObjectsRegistry.CollectDataObjectTypes();
-            if (!TryReadFile())
+            if (!TryReadFile(fileResult))
                 return;
             
             _frameTimer = 0f;
@@ -82,23 +79,20 @@ namespace SkillcadeSDK.Replays
             _replayObjects.Clear();
         }
 
-        private bool TryReadFile()
+        private bool TryReadFile(ReplayFileResult fileResult)
         {
-            var filePath = Path.Combine(Application.streamingAssetsPath, FileName);
-            if (!File.Exists(filePath))
-            {
-                Debug.LogError("[ReplayReadService] File not found: " + filePath);
+            if (!fileResult.IsSuccess)
                 return false;
-            }
             
             _frames ??= new List<FrameData>();
             _frames.Clear();
             
-            using var file = File.OpenRead(filePath);
-            using var binaryReader = new BinaryReader(file);
+            using var memoryStream = new MemoryStream(fileResult.Data);
+            using var binaryReader = new BinaryReader(memoryStream);
             var reader = new ReplayReader(binaryReader);
             
             int frameCount = reader.ReadInt();
+            Debug.Log($"[ReplayReadService] Read {frameCount} frames");
             
             for (int i = 0; i < frameCount; i++)
             {
@@ -113,7 +107,6 @@ namespace SkillcadeSDK.Replays
                 });
             }
             
-            GC.Collect();
             return true;
         }
 
