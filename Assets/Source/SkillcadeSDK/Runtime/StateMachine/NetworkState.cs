@@ -22,8 +22,8 @@ namespace SkillcadeSDK.StateMachine
     {
         public abstract TStateType Type { get; }
 
-        protected bool IsServer => StateMachine.IsServer;
-        protected bool IsClient => StateMachine.IsClient;
+        protected bool IsServer => StateMachine?.IsServer ?? false;
+        protected bool IsClient => StateMachine?.IsClient ?? false;
         
         protected NetworkStateMachine<TStateType> StateMachine { get; private set; }
 

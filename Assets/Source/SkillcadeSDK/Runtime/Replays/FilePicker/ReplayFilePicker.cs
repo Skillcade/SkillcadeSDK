@@ -15,7 +15,7 @@ namespace SkillcadeSDK.Replays
         private const string ReplayExtension = "replay";
         private const string FileFilterDescription = "Replay Files";
 
-        public event Action<ReplayFileResult> OnFileSelected;
+        private event Action<ReplayFileResult> OnFileSelected;
 
 #if UNITY_WEBGL && !UNITY_EDITOR
         [DllImport("__Internal")]
@@ -99,7 +99,7 @@ namespace SkillcadeSDK.Replays
         {
             ReplayFilePicker_OpenFileDialog(
                 gameObject.name,
-                nameof(WebGLFilePickerCallback.OnFileSelected),
+                nameof(OnFileSelectedWeb),
                 $".{ReplayExtension}");
         }
 
@@ -118,7 +118,7 @@ namespace SkillcadeSDK.Replays
 #endif
         
 #if UNITY_WEBGL && !UNITY_EDITOR
-        private void OnFileSelected(string base64WithName)
+        private void OnFileSelectedWeb(string base64WithName)
         {
             if (string.IsNullOrEmpty(base64WithName))
             {

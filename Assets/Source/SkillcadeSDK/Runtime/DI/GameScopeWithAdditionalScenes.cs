@@ -56,17 +56,18 @@ namespace SkillcadeSDK.DI
         {
             base.Configure(builder);
             
+            builder.Register<ContainerSingletonWrapper>(Lifetime.Singleton).AsImplementedInterfaces();
             builder.RegisterBuildCallback(AutoInjectTargets);
             
             foreach (var installer in _rootInstallers)
             {
-                Debug.Log($"[GameScopeWithAdditionalScenes] install {installer.name}");
+                Debug.Log($"[GameScopeWithAdditionalScenes] install {installer.GetType().Name}");
                 installer.Install(builder);
             }
             
             foreach (var installer in _loadedInstallers)
             {
-                Debug.Log($"[GameScopeWithAdditionalScenes] install {installer.name}");
+                Debug.Log($"[GameScopeWithAdditionalScenes] install {installer.GetType().Name}");
                 installer.Install(builder);
             }
         }

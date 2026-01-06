@@ -1,4 +1,4 @@
-﻿#if UNITY_SERVER
+﻿#if UNITY_SERVER || UNITY_EDITOR
 using JetBrains.Annotations;
 
 namespace SkillcadeSDK.ServerValidation

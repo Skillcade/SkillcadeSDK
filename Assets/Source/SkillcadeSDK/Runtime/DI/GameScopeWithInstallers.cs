@@ -21,6 +21,7 @@ namespace SkillcadeSDK.DI
         {
             EntryPointsBuilder.EnsureDispatcherRegistered(builder);
             
+            builder.Register<ContainerSingletonWrapper>(Lifetime.Singleton).AsImplementedInterfaces();
             builder.RegisterBuildCallback(AutoInjectTargets);
 
             var allInstallers = FindObjectsByType<MonoInstaller>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);

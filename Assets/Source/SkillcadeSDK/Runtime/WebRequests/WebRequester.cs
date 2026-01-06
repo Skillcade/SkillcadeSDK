@@ -4,13 +4,16 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SkillcadeSDK.Connection;
-using SkillcadeSDK.ServerValidation;
 using UnityEngine;
 using VContainer;
 
+#if UNITY_SERVER || UNITY_EDITOR
+using SkillcadeSDK.ServerValidation;
+#endif
+
 namespace SkillcadeSDK.WebRequests
 {
-#if UNITY_SERVER
+#if UNITY_SERVER || UNITY_EDITOR
     public class WebRequester
     {
         private const string BaseUri = "https://demo.skillcade.com";
@@ -52,7 +55,7 @@ namespace SkillcadeSDK.WebRequests
             var httpClient = new HttpClient
             {
                 BaseAddress = new Uri(BaseUri),
-                DefaultRequestHeaders = {  { TokenHeaderKey, _serverPayloadController.Payload.ServerAuthToken } }
+                DefaultRequestHeaders = { { TokenHeaderKey, _serverPayloadController.Payload.ServerAuthToken } }
             };
 
             var request = new ChooseWinnerRequest

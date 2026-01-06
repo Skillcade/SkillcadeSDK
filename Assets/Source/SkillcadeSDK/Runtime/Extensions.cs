@@ -70,5 +70,13 @@ namespace SkillcadeSDK
         {
             return GameObject.Instantiate(prefab, position, rotation);
         }
+
+        public static void SetActive(this GameObject[] targets, bool value)
+        {
+            foreach (var target in targets)
+            {
+                target.SetActive(value);
+            }
+        }
     }
 }

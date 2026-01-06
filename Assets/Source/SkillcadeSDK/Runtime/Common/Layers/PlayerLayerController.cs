@@ -5,7 +5,7 @@ namespace SkillcadeSDK.Common
 {
     public class PlayerLayerController : MonoBehaviour
     {
-        [Inject] private readonly LayerProvider _layerProvider;
+        [Inject] private readonly IObjectResolver _objectResolver;
         
         private int _defaultLayer;
         private int? _layer;
@@ -18,32 +18,39 @@ namespace SkillcadeSDK.Common
         private void OnEnable()
         {
             this.InjectToMe();
-            if (_layerProvider == null)
+            if (!_objectResolver.TryResolve(out LayerProvider layerProvider))
                 return;
             
-            _layerProvider.CollisionsStateChanged += OnCollisionStateChanged;
-            if (_layerProvider.CollisionsEnabled)
+            layerProvider.CollisionsStateChanged += OnCollisionStateChanged;
+            if (layerProvider.CollisionsEnabled)
                 GetLayer();
         }
 
         private void OnDisable()
         {
-            if (_layerProvider == null)
+            if (!_objectResolver.TryResolve(out LayerProvider layerProvider))
                 return;
-            _layerProvider.CollisionsStateChanged -= OnCollisionStateChanged;
+            
+            layerProvider.CollisionsStateChanged -= OnCollisionStateChanged;
             ReturnLayer();
         }
 
         private void OnCollisionStateChanged()
         {
+            if (!_objectResolver.TryResolve(out LayerProvider layerProvider))
+                return;
+            
             ReturnLayer();
-            if (_layerProvider.CollisionsEnabled)
+            if (layerProvider.CollisionsEnabled)
                 GetLayer();
         }
         
         private void GetLayer()
         {
-            if (_layerProvider.TryGetLayer(out int layer))
+            if (!_objectResolver.TryResolve(out LayerProvider layerProvider))
+                return;
+            
+            if (layerProvider.TryGetLayer(out int layer))
             {
                 gameObject.SetLayerWithChildren(layer);
                 _layer = layer;
@@ -52,9 +59,12 @@ namespace SkillcadeSDK.Common
         
         private void ReturnLayer()
         {
+            if (!_objectResolver.TryResolve(out LayerProvider layerProvider))
+                return;
+            
             if (_layer.HasValue)
             {
-                _layerProvider.ReturnLayer(_layer.Value);
+                layerProvider.ReturnLayer(_layer.Value);
                 _layer = null;
                 gameObject.SetLayerWithChildren(_defaultLayer);
             }

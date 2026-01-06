@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
 using VContainer;
 
@@ -6,12 +7,17 @@ namespace SkillcadeSDK.Replays.GUI
 {
     public class ReplayControlPanel : MonoBehaviour
     {
+        [SerializeField] private TMP_Text _currentTimeText;
+        [SerializeField] private TMP_Text _totalTimeText;
+        
         [Header("Play/Pause")]
         [SerializeField] private Button _playPauseButton;
         [SerializeField] private GameObject _pauseState;
         [SerializeField] private GameObject _playState;
 
         [Header("Jump forward/back")]
+        [SerializeField] private Button _forward1FrameButton;
+        [SerializeField] private Button _back1FrameButton;
         [SerializeField] private Button _forward5SecondsButton;
         [SerializeField] private Button _back5SecondsButton;
         [SerializeField] private Button _forward10SecondsButton;
@@ -25,6 +31,8 @@ namespace SkillcadeSDK.Replays.GUI
         private void Awake()
         {
             _playPauseButton.onClick.AddListener(TogglePlayPause);
+            _forward1FrameButton.onClick.AddListener(JumpForward1Frame);
+            _back1FrameButton.onClick.AddListener(JumpBack1Frame);
             _forward5SecondsButton.onClick.AddListener(JumpForward5Seconds);
             _back5SecondsButton.onClick.AddListener(JumpBack5Seconds);
             _forward10SecondsButton.onClick.AddListener(JumpForward10Seconds);
@@ -40,6 +48,9 @@ namespace SkillcadeSDK.Replays.GUI
             if (_replayReadService == null || !_replayReadService.IsReplayReady)
                 return;
             
+            _currentTimeText.text = _replayReadService.CurrentTime.ToString("F2");
+            _totalTimeText.text = _replayReadService.TotalTime.ToString("F2");
+            
             _timelineSlider.SetValueWithoutNotify(_replayReadService.CurrentTime / _replayReadService.TotalTime);
         }
 
@@ -53,12 +64,11 @@ namespace SkillcadeSDK.Replays.GUI
             _playState.SetActive(_replayReadService.IsPlaying);
         }
 
+        private void JumpForward1Frame() => AddTimeAndJump(_replayReadService.TickInterval);
+        private void JumpBack1Frame() =>  AddTimeAndJump(-_replayReadService.TickInterval);
         private void JumpForward5Seconds() => AddTimeAndJump(5);
-
         private void JumpBack5Seconds() => AddTimeAndJump(-5);
-
         private void JumpForward10Seconds() => AddTimeAndJump(10);
-
         private void JumpBack10Seconds() => AddTimeAndJump(-10);
 
         private void AddTimeAndJump(float value)

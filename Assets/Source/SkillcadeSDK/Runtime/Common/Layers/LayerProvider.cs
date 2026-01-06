@@ -13,11 +13,10 @@ namespace SkillcadeSDK.Common
         
         public bool CollisionsEnabled { get; private set; }
         
-        private Stack<int> _availableLayerMasks;
+        private readonly Stack<int> _availableLayerMasks = new Stack<int>();
         
         public void Initialize()
         {
-            _availableLayerMasks = new Stack<int>();
             for (int i = 0; i < LayerCount; i++)
             {
                 int layerId = i + 1;
