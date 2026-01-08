@@ -36,20 +36,11 @@ namespace SkillcadeSDK.Replays.GUI
             _gameVersionText.text = _replayReadService.ReplayInfo.GameVersion;
             _unityVersionText.text = _replayReadService.ReplayInfo.UnityVersion;
             _matchIdText.text = _replayReadService.ReplayInfo.MatchId;
-            CleanupInfoItems();
-        }
-
-        private void CleanupInfoItems()
-        {
-            foreach (var item in _playerInfoItems.Values)
-            {
-                item.DestroyGameObject();
-            }
-            _playerInfoItems.Clear();
         }
 
         public void SetPlayerNickname(int playerId, string nickname)
         {
+            Debug.Log($"[ReplayInfoPanel] Set player {playerId} nickname {nickname}");
             var item = GetOrCreateItem(playerId);
             item.NicknameText.text = nickname;
         }

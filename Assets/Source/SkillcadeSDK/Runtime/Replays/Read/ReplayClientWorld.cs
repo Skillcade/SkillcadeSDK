@@ -10,9 +10,13 @@ namespace SkillcadeSDK.Replays
 {
     public class ReplayClientWorld : IDisposable
     {
-        public int ClientId { get; }
+        public event Action OnColorChanged;
+        
+        public int WorldId { get; }
         public int Tick { get; private set; }
         public bool IsActive { get; private set; }
+        public float Transparency { get; private set; }
+        public Color Color { get; private set; }
         
         public IReadOnlyList<ReplayReadFrameData> Frames => _frames;
         public IReadOnlyDictionary<int, ReplayObjectHandler> ReplayObjects => _replayObjects;
@@ -25,33 +29,53 @@ namespace SkillcadeSDK.Replays
         
         private int _currentFrameId;
 
-        public ReplayClientWorld(int clientId, List<ReplayReadFrameData> frames)
+        public ReplayClientWorld(int worldId, List<ReplayReadFrameData> frames, float transparency)
         {
-            ClientId = clientId;
+            WorldId = worldId;
             _frames = frames;
             _lastFrameEvents = new List<ReplayEvent>();
             _replayObjects = new Dictionary<int, ReplayObjectHandler>();
             _currentFrameId = -1;
+            Transparency = transparency;
+            Color = Color.white;
         }
         
         public void RegisterObject(ReplayObjectHandler handler)
         {
+            Debug.Log($"[ReplayClientWorld] Add object {handler.ObjectId} to world {handler.WorldId}");
             _replayObjects.Add(handler.ObjectId, handler);
-            handler.SetVisible(IsActive);
+            handler.SetVisible(IsActive ? 1f : Transparency);
         }
         
         public void DeleteObject(int id, out ReplayObjectHandler handler)
         {
             _replayObjects.Remove(id, out handler);
+            Debug.Log($"[ReplayClientWorld] Remove object {handler.ObjectId} from world {handler.WorldId}");
         }
 
         public void SetWorldActive(bool value)
         {
-            Debug.Log($"[ReplayClientWorld] Set world {ClientId} visible: {value}");
             IsActive = value;
+            UpdateObjectsVisibility();
+        }
+
+        public void SetWorldTransparency(float value)
+        {
+            Transparency = value;
+            UpdateObjectsVisibility();
+        }
+
+        public void SetWorldColor(Color value)
+        {
+            Color = value;
+            OnColorChanged?.Invoke();
+        }
+
+        private void UpdateObjectsVisibility()
+        {
             foreach (var handler in _replayObjects)
             {
-                handler.Value.SetVisible(value);
+                handler.Value.SetVisible(IsActive ? 1f : Transparency);
             }
         }
 
@@ -83,7 +107,7 @@ namespace SkillcadeSDK.Replays
             {
                 foreach (var lastFrameEvent in _lastFrameEvents)
                 {
-                    lastFrameEvent.Undo(ClientId);
+                    lastFrameEvent.Undo(WorldId);
                 }
             }
 
@@ -123,7 +147,7 @@ namespace SkillcadeSDK.Replays
                 _lastFrameEvents.Add(eventInstance);
                 
                 if (!isMovingBakwards)
-                    eventInstance.Handle(ClientId);
+                    eventInstance.Handle(WorldId);
             }
 
             int objectsCount = reader.ReadInt();

@@ -48,8 +48,8 @@ namespace SkillcadeSDK.Replays.GUI
             if (_replayReadService == null || !_replayReadService.IsReplayReady)
                 return;
             
-            _currentTimeText.text = _replayReadService.CurrentTime.ToString("F2");
-            _totalTimeText.text = _replayReadService.TotalTime.ToString("F2");
+            _currentTimeText.text = _replayReadService.CurrentTime.SecondsToTimeString();
+            _totalTimeText.text = _replayReadService.TotalTime.SecondsToTimeString();
             
             _timelineSlider.SetValueWithoutNotify(_replayReadService.CurrentTime / _replayReadService.TotalTime);
         }

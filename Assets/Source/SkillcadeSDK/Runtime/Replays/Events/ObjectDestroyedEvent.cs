@@ -46,7 +46,7 @@ namespace SkillcadeSDK.Replays.Events
                 return;
             }
             
-            // Debug.Log($"[ObjectDestroyedEvent] Handle event with object {ObjectId} and prefab {PrefabId}");
+            Debug.Log($"[ObjectDestroyedEvent] Handle event with object {ObjectId} and prefab {PrefabId}");
             
             replayClientWorld.DeleteObject(ObjectId, out var handler);
             handler.DestroyGameObject();
@@ -71,7 +71,7 @@ namespace SkillcadeSDK.Replays.Events
             instance.transform.position = Position;
             replayClientWorld.RegisterObject(instance);
 
-            // Debug.Log($"[ObjectDestroyedEvent] Undo event with object {ObjectId} and prefab {PrefabId}");
+            Debug.Log($"[ObjectDestroyedEvent] Undo event with object {ObjectId} and prefab {PrefabId}");
         }
     }
 }

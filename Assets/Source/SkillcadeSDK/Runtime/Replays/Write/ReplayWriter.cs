@@ -16,8 +16,6 @@ namespace SkillcadeSDK.Replays
             dataObject.Write(this);
         }
         
-        public int GetSize(IReplayDataObject dataObject) => dataObject.Size + sizeof(int);
-
         public void WriteInt(int value) => _writer.Write(value);
         public void WriteShort(short value) => _writer.Write(value);
         public void WriteUshort(ushort value) => _writer.Write(value);

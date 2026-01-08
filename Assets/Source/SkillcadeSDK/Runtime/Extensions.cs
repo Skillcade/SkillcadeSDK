@@ -78,5 +78,28 @@ namespace SkillcadeSDK
                 target.SetActive(value);
             }
         }
+
+        public static string SecondsToTimeString(this float secondsValue)
+        {
+            int seconds = Mathf.FloorToInt(secondsValue);
+            if (seconds < 60)
+                return $"{seconds}s";
+            
+            int minutes = seconds / 60;
+            seconds %= 60;
+
+            if (minutes < 60)
+                return $"{minutes}m {seconds}s";
+
+            int hours = minutes / 60;
+            minutes %= 60;
+            
+            if (hours < 24)
+                return $"{hours}h {minutes}m {seconds}s";
+            
+            int days = hours / 24;
+            hours %= 24;
+            return $"{days}d {hours}h {minutes}m {seconds}s";
+        }
     }
 }

@@ -9,13 +9,14 @@ namespace SkillcadeSDK.Replays.Components
     {
         public int PrefabId => _prefabId;
         public int ObjectId => _isReplaying ? _replayObjectId : RuntimeNetworkObjectId;
-        public int ClientId => _replayClientId;
+        public int WorldId => _replayWorldId;
+        public bool IsReplaying => _isReplaying;
         
         protected abstract int RuntimeNetworkObjectId { get; }
 
         [SerializeField] private bool _isReplaying;
         [SerializeField] private int _replayObjectId;
-        [SerializeField] private int _replayClientId;
+        [SerializeField] private int _replayWorldId;
 
         [SerializeField] private int _prefabId;
         [SerializeField] private GameObject _targetObject;
@@ -35,11 +36,11 @@ namespace SkillcadeSDK.Replays.Components
             }
         }
 
-        public void InitializeReplay(int objectId, int clientId)
+        public void InitializeReplay(int objectId, int worldId)
         {
             _isReplaying = true;
             _replayObjectId = objectId;
-            _replayClientId = clientId;
+            _replayWorldId = worldId;
         }
 
         protected void Register()
@@ -55,7 +56,7 @@ namespace SkillcadeSDK.Replays.Components
                 _replayWriteService.UnregisterObjectHandler(this);
         }
 
-        public virtual void SetVisible(bool value)
+        public virtual void SetVisible(float transparency)
         {
             if (_graphicsObject == null)
             {
@@ -63,8 +64,9 @@ namespace SkillcadeSDK.Replays.Components
                 return;
             }
 
-            Debug.Log($"[ReplayObjectHandler] Set object {ObjectId} of client {ClientId} visible: {value}");
-            _graphicsObject.SetActive(value);
+            bool visible = transparency >= 1f;
+            Debug.Log($"[ReplayObjectHandler] Set object {ObjectId} in world {WorldId} visible: {visible}");
+            _graphicsObject.SetActive(visible);
         }
 
         public void Write(ReplayWriter writer)
@@ -78,6 +80,7 @@ namespace SkillcadeSDK.Replays.Components
 
         public void Read(ReplayReader reader)
         {
+            Debug.Log($"[ReplayObjectHandler] Read object {ObjectId} in world {WorldId}");
             _targetObject.SetActive(true);
             int componentsCount = reader.ReadUshort();
             for (int i = 0; i < componentsCount; i++)

@@ -40,7 +40,7 @@ namespace SkillcadeSDK.Replays.Events
 
         public override void Handle(int worldId)
         {
-            // Debug.Log($"[ObjectCreatedEvent] Handle event with object {ObjectId} and prefab {PrefabId}");
+            Debug.Log($"[ObjectCreatedEvent] Handle event with object {ObjectId} and prefab {PrefabId}");
             if (!_replayPrefabRegistry.TryGetPrefab(PrefabId, out var prefab))
             {
                 Debug.LogError($"[ObjectCreatedEvent] Prefab {PrefabId} not found");
@@ -71,7 +71,7 @@ namespace SkillcadeSDK.Replays.Events
             if (handler != null)
                 handler.DestroyGameObject();
 
-            // Debug.Log($"[ObjectCreatedEvent] Undo event with object {ObjectId} and prefab {PrefabId}, found object: {handler != null}");
+            Debug.Log($"[ObjectCreatedEvent] Undo event with object {ObjectId} and prefab {PrefabId}, found object: {handler != null}");
         }
     }
 }

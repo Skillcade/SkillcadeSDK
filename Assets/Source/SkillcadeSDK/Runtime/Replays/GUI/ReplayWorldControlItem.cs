@@ -11,5 +11,10 @@ namespace SkillcadeSDK.Replays.GUI
         [SerializeField] public TMP_Text WorldNameText;
         [SerializeField] public GameObject ActiveState;
         [SerializeField] public Button SelectButton;
+        [SerializeField] public Slider TransparencySlider;
+        
+        [Header("Color")]
+        [SerializeField] public Image WorldColorImage;
+        [SerializeField] public Button PickColorButton;
     }
 }

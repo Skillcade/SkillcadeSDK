@@ -11,6 +11,7 @@ namespace SkillcadeSDK.Replays.GUI
         [SerializeField] private Transform _itemsParent;
 
         [Inject] private readonly ReplayReadService _replayReadService;
+        [Inject] private readonly ReplayColorPickerController _replayColorPickerController;
         
         private List<ReplayWorldControlItem> _items;
 
@@ -26,16 +27,35 @@ namespace SkillcadeSDK.Replays.GUI
             var orderedWorlds = _replayReadService.ClientWorlds.OrderBy(x => x.Key);
             foreach (var clientWorld in orderedWorlds)
             {
-                int worldId = clientWorld.Key;
                 var item = Instantiate(_itemPrefab, _itemsParent);
-                item.WorldId = worldId;
-                item.ActiveState.SetActive(worldId == _replayReadService.CurrentActiveWorldId);
-                item.WorldNameText.text = clientWorld.Key == ReplayReadService.ServerWorldId
-                    ? "Server View"
-                    : $"Player_{worldId} View";
-                item.SelectButton.onClick.AddListener(() => SetActiveWorld(worldId));
+                InitializeItem(item, clientWorld.Value);
                 _items.Add(item);
             }
+        }
+
+        private void InitializeItem(ReplayWorldControlItem item, ReplayClientWorld clientWorld)
+        {
+            int worldId = clientWorld.WorldId;
+            item.WorldId = worldId;
+            item.ActiveState.SetActive(worldId == _replayReadService.CurrentActiveWorldId);
+            item.WorldNameText.text = worldId == ReplayReadService.ServerWorldId
+                ? "Server View"
+                : $"Player_{worldId} View";
+            
+            item.SelectButton.onClick.AddListener(() => SetActiveWorld(worldId));
+            
+            item.TransparencySlider.value = clientWorld.Transparency;
+            item.TransparencySlider.onValueChanged.AddListener(value => UpdateWorldTransparency(worldId, value));
+
+            item.WorldColorImage.color = clientWorld.Color;
+            item.PickColorButton.onClick.AddListener(() =>
+            {
+                _replayColorPickerController.OpenColorPicker(clientWorld.Color, color =>
+                {
+                    item.WorldColorImage.color = color;
+                    _replayReadService.SetWorldColor(worldId, color);
+                });
+            });
         }
 
         private void SetActiveWorld(int worldId)
@@ -45,6 +65,11 @@ namespace SkillcadeSDK.Replays.GUI
             {
                 item.ActiveState.SetActive(item.WorldId == worldId);
             }
+        }
+
+        private void UpdateWorldTransparency(int worldId, float value)
+        {
+            _replayReadService.SetWorldTransparency(worldId, value);
         }
     }
 }

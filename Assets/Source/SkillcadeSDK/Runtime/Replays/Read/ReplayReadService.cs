@@ -26,10 +26,14 @@ namespace SkillcadeSDK.Replays
         public ReplayClientWorld CurrentActiveWorld => _clientWorlds.ContainsKey(CurrentActiveWorldId) ? _clientWorlds[CurrentActiveWorldId] : null;
         public IReadOnlyDictionary<int, ReplayClientWorld> ClientWorlds => _clientWorlds;
 
+        [Header("Config")]
+        [SerializeField] private int _tickRate;
+        [SerializeField] [Range(0f, 1f)] private float _defaultWorldTransparency;
+        
+        [Header("Debug")]
         [SerializeField] private float _currentTime;
         [SerializeField] private float _totalTime;
         [SerializeField] private float _timeScale;
-        [SerializeField] private int _tickRate;
         [SerializeField] private float _frameTimer;
         [SerializeField] private float _frameInterval;
         [SerializeField] private int _currentFrameId;
@@ -69,7 +73,7 @@ namespace SkillcadeSDK.Replays
         {
             if (!_clientWorlds.ContainsKey(clientId))
             {
-                Debug.LogError($"[ReplayReadService] No world {clientId}");
+                Debug.LogError($"[ReplayReadService] World {clientId} not found");
                 return;
             }
             
@@ -80,6 +84,28 @@ namespace SkillcadeSDK.Replays
             CurrentActiveWorldId = clientId;
             CurrentActiveWorld?.SetWorldActive(true);
             OnWorldChanged?.Invoke();
+        }
+
+        public void SetWorldTransparency(int clientId, float transparency)
+        {
+            if (!_clientWorlds.TryGetValue(clientId, out var world))
+            {
+                Debug.LogError($"[ReplayReadService] World {clientId} not found");
+                return;
+            }
+            
+            world.SetWorldTransparency(transparency);
+        }
+
+        public void SetWorldColor(int clientId, Color color)
+        {
+            if (!_clientWorlds.TryGetValue(clientId, out var world))
+            {
+                Debug.LogError($"[ReplayReadService] World {clientId} not found");
+                return;
+            }
+            
+            world.SetWorldColor(color);
         }
 
         private bool TryReadFile(ReplayFileResult fileResult)
@@ -134,7 +160,7 @@ namespace SkillcadeSDK.Replays
                     });
                 }
 
-                var world = new ReplayClientWorld(clientId, frames);
+                var world = new ReplayClientWorld(clientId, frames, _defaultWorldTransparency);
                 _objectResolver.Inject(world);
                 _clientWorlds.Add(clientId, world);
             }
