@@ -17,6 +17,8 @@ namespace SkillcadeSDK.Connection
         private int _reconnectAttempts;
         private Coroutine _reconnectCoroutine;
         private WaitForSeconds _reconnectWait;
+        
+        private bool _isWaitingForServerSinglePlayer;
 
         public virtual void Initialize()
         {
@@ -66,6 +68,27 @@ namespace SkillcadeSDK.Connection
             Transport.StartClient(config);
         }
 
+        public void StartSinglePlayer(ConnectionData config)
+        {
+            if (ConnectionState != ConnectionState.Disconnected)
+            {
+                Debug.LogError($"[ConnectionControllerBase] Can't start single player in state {ConnectionState}");
+                return;
+            }
+
+            if (config == null)
+            {
+                Debug.LogError($"[ConnectionControllerBase] Can't start single player cause config is null");
+                return;
+            }
+            
+            ActiveConfig = config;
+
+            SetState(ConnectionState.SinglePlayer);
+            Debug.Log("[ConnectionControllerBase] Starting single player server");
+            Transport.StartServer(config);
+        }
+
         public void Disconnect()
         {
             if (ConnectionState ==  ConnectionState.Disconnected)
@@ -83,14 +106,18 @@ namespace SkillcadeSDK.Connection
 
         private void OnTransportConnected()
         {
-            if (Transport.IsServer)
+            if (Transport.IsServer && !Transport.IsClient)
             {
-                SetState(ConnectionState.Hosting);
+                if (ConnectionState == ConnectionState.SinglePlayer)
+                    Transport.StartClient(ActiveConfig);
+                else
+                    SetState(ConnectionState.Hosting);
             }
             else if (Transport.IsClient)
             {
                 _reconnectAttempts = 0;
-                SetState(ConnectionState.Connected);
+                if (ConnectionState != ConnectionState.SinglePlayer)
+                    SetState(ConnectionState.Connected);
             }
         }
 

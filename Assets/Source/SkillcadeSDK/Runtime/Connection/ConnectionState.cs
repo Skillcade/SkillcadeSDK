@@ -8,6 +8,7 @@
         Disconnecting,
         Failed,
         Hosting,
+        SinglePlayer,
     }
 
     public enum DisconnectionReason

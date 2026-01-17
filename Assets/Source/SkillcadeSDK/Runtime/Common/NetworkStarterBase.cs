@@ -12,7 +12,8 @@ namespace SkillcadeSDK.Common
     {
         None,
         Client,
-        Server
+        Server,
+        SinglePlayer,
     }
     
     public class NetworkStarterBase : MonoBehaviour, IInitializable
@@ -25,7 +26,7 @@ namespace SkillcadeSDK.Common
         [SerializeField] private ConnectionMode _connectionMode;
 
         [Inject] private readonly IConnectionController _connectionController;
-        [Inject] private readonly WebBridge _webBridge;
+        [Inject] protected readonly WebBridge _webBridge;
         [Inject] private readonly ConnectionConfig _connectionConfig;
 
         private ConnectionData _data;
@@ -56,6 +57,10 @@ namespace SkillcadeSDK.Common
                     WaitForPayloadAndConnect(destroyCancellationToken);
                 else
                     StartCoroutine(WaitAndStart(_connectionMode));
+            }
+            else if (_connectionMode == ConnectionMode.SinglePlayer)
+            {
+                StartCoroutine(WaitAndStart(_connectionMode));
             }
             else
             {
@@ -115,6 +120,8 @@ namespace SkillcadeSDK.Common
                 StartServer();
             else if (connectionMode == ConnectionMode.Client)
                 StartClient();
+            else if (connectionMode == ConnectionMode.SinglePlayer)
+                StartSinglePlayer();
         }
 
         protected void StartServer()
@@ -127,6 +134,12 @@ namespace SkillcadeSDK.Common
         {
             _connectionController.StartClient(_data);
             OnConnectionStarted(ConnectionMode.Client);
+        }
+
+        protected void StartSinglePlayer()
+        {
+            _connectionController.StartSinglePlayer(_data);
+            OnConnectionStarted(ConnectionMode.SinglePlayer);
         }
     }
 }

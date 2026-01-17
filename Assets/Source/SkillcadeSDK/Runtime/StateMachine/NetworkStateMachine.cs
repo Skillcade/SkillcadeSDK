@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
+using SkillcadeSDK.Connection;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -13,9 +14,10 @@ namespace SkillcadeSDK.StateMachine
     {
         public TStateType CurrentStateType => _stateMachineSyncer.CurrentState.GetType<TStateType>();
         
-        public bool IsServer => _stateMachineSyncer.IsServer;
-        public bool IsClient => _stateMachineSyncer.IsClient;
+        public bool IsServer => _connectionController.IsServer;
+        public bool IsClient => _connectionController.IsClient;
 
+        [Inject] protected readonly IConnectionController _connectionController;
         [Inject] private readonly INetworkStateMachineSyncer _stateMachineSyncer;
         [Inject] private readonly IReadOnlyList<INetworkState<TStateType>> _states;
         
