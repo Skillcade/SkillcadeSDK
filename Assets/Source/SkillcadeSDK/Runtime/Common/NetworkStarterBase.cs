@@ -23,22 +23,22 @@ namespace SkillcadeSDK.Common
         
         [Header("Default connection settings")]
         [SerializeField] private ConnectionMode _connectionMode;
-        [SerializeField] private ConnectionConfig _config;
 
         [Inject] private readonly IConnectionController _connectionController;
         [Inject] private readonly WebBridge _webBridge;
+        [Inject] private readonly ConnectionConfig _connectionConfig;
 
         private ConnectionData _data;
 
         public virtual void Initialize()
         {
-            if (_config == null)
+            if (_connectionConfig == null)
             {
                 Debug.LogError("[NetworkStarterBase] Config is null");
                 return;
             }
 
-            _data = _config.GetData();
+            _data = _connectionConfig.GetData();
             
 #if !UNITY_EDITOR && UNITY_SERVER
             _connectionMode = _dedicatedServerMode;
@@ -52,7 +52,7 @@ namespace SkillcadeSDK.Common
             }
             else if (_connectionMode == ConnectionMode.Client)
             {
-                if (_webBridge.UsePayload)
+                if (_connectionConfig.SkillcadeHubIntegrated)
                     WaitForPayloadAndConnect(destroyCancellationToken);
                 else
                     StartCoroutine(WaitAndStart(_connectionMode));

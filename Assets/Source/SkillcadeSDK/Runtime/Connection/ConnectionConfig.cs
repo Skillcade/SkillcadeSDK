@@ -10,6 +10,7 @@ namespace SkillcadeSDK.Connection
         [SerializeField] public ushort WssConnectPort;
         [SerializeField] public string WssServerName;
         [SerializeField] public bool UseEncryption;
+        [SerializeField] public bool SkillcadeHubIntegrated;
 
         [SerializeField] public float ReconnectDelay;
         [SerializeField] public int ReconnectAttempts;

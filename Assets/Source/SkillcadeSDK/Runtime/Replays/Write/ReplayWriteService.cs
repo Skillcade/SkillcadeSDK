@@ -58,14 +58,14 @@ namespace SkillcadeSDK.Replays
 
         public void RegisterObjectHandler(ReplayObjectHandler handler)
         {
-            Debug.Log($"[ReplayWriteService] Register object {handler.ObjectId} with prefab {handler.PrefabId}");
+            // Debug.Log($"[ReplayWriteService] Register object {handler.ObjectId} with prefab {handler.PrefabId}");
             _activeObjects.Add(handler);
             AddEvent(new ObjectCreatedEvent(handler.ObjectId, handler.PrefabId, handler.transform.position));
         }
 
         public void UnregisterObjectHandler(ReplayObjectHandler handler)
         {
-            Debug.Log($"[ReplayWriteService] Unregister object {handler.ObjectId} with prefab {handler.PrefabId}");
+            // Debug.Log($"[ReplayWriteService] Unregister object {handler.ObjectId} with prefab {handler.PrefabId}");
             _activeObjects.Remove(handler);
             AddEvent(new ObjectDestroyedEvent(handler.ObjectId, handler.PrefabId, handler.transform.position));
         }
@@ -163,7 +163,7 @@ namespace SkillcadeSDK.Replays
             writer.WriteInt(_pendingEvents.Count);
             foreach (var pendingEvent in _pendingEvents)
             {
-                Debug.Log($"[ReplayWriteService] Write event {pendingEvent.GetType().Name} to replay");
+                // Debug.Log($"[ReplayWriteService] Write event {pendingEvent.GetType().Name} to replay");
                 writer.Write(pendingEvent);
             }
             
@@ -172,7 +172,7 @@ namespace SkillcadeSDK.Replays
             writer.WriteInt(_activeObjects.Count);
             foreach (var objectHandler in _activeObjects)
             {
-                Debug.Log($"[ReplayWriteService] Write object {objectHandler.ObjectId} with prefab {objectHandler.PrefabId} to replay");
+                // Debug.Log($"[ReplayWriteService] Write object {objectHandler.ObjectId} with prefab {objectHandler.PrefabId} to replay");
                 writer.WriteInt(objectHandler.PrefabId);
                 writer.WriteInt(objectHandler.ObjectId);
                 objectHandler.Write(writer);

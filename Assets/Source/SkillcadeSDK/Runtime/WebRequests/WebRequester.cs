@@ -18,16 +18,14 @@ namespace SkillcadeSDK.WebRequests
     {
         private const string BaseUri = "https://demo.skillcade.com";
         private const string MediaTypeJson = "application/json";
-        private const string TokenHeaderKey = " X-Game-Server-Token";
+        private const string TokenHeaderKey = "X-Game-Server-Token";
 
         [Inject] private readonly IConnectionController _connectionController;
         [Inject] private readonly ServerPayloadController _serverPayloadController;
 
         public async Task SendWinner(string winnerId)
         {
-            if (_connectionController.ConnectionState != ConnectionState.Hosting)
-                return;
-
+            Debug.Log($"[WebRequester] Send winner {winnerId}");
             if (_serverPayloadController.Payload == null)
             {
                 Debug.LogError("[WebRequester] Server payload is null");
@@ -52,12 +50,14 @@ namespace SkillcadeSDK.WebRequests
                 return;
             }
 
+            Debug.Log("[WebRequester] Create http client");
             var httpClient = new HttpClient
             {
                 BaseAddress = new Uri(BaseUri),
                 DefaultRequestHeaders = { { TokenHeaderKey, _serverPayloadController.Payload.ServerAuthToken } }
             };
 
+            Debug.Log("[WebRequester] Create request");
             var request = new ChooseWinnerRequest
             {
                 WinnerId = winnerId
@@ -69,6 +69,7 @@ namespace SkillcadeSDK.WebRequests
             try
             {
                 using var jsonContent = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, MediaTypeJson);
+                Debug.Log("[WebRequester] Send request");
                 using var response = await httpClient.PostAsync($"api/playing-game/{matchId}/choose-winner", jsonContent);
 
                 Debug.Log($"[WebRequester] choose winner response status: {response.StatusCode} - {response.ReasonPhrase}");

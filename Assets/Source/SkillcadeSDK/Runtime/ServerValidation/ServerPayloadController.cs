@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Newtonsoft.Json;
+using SkillcadeSDK.Connection;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -14,11 +15,11 @@ namespace SkillcadeSDK.ServerValidation
     {
         public ServerPayload Payload { get; private set; }
 
-        [Inject] private readonly WebBridge _webBridge;
+        [Inject] private readonly ConnectionConfig _connectionConfig;
         
         public void Initialize()
         {
-            if (_webBridge.UsePayload)
+            if (_connectionConfig.SkillcadeHubIntegrated)
             {
                 ReadPayload();
                 ProcessPayload();

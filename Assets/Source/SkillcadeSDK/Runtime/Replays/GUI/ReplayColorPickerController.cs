@@ -14,6 +14,7 @@ namespace SkillcadeSDK.Replays.GUI
         private void Awake()
         {
             _closeButton.onClick.AddListener(Close);
+            Close();
         }
 
         public void OpenColorPicker(Color currentColor, Action<Color> onColorPickedCallback)
