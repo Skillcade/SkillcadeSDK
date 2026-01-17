@@ -23,6 +23,10 @@ public class WebBridge : MonoBehaviour, IInitializable, IDisposable
     [UsedImplicitly]
     [DllImport("__Internal")]
     private static extern void ConnectedToServer();
+    
+    [UsedImplicitly]
+    [DllImport("__Internal")]
+    private static extern void QuitSinglePlayer();
 
     public void Initialize()
     {
@@ -54,6 +58,14 @@ public class WebBridge : MonoBehaviour, IInitializable, IDisposable
         Debug.Log("Trigger ConnectedToServer");
 #if UNITY_WEBGL && !UNITY_EDITOR
         ConnectedToServer();
+#endif
+    }
+
+    public void TriggerQuitSinglePlayer()
+    {
+        Debug.Log("Trigger QuitSinglePlayer");
+#if UNITY_WEBGL && !UNITY_EDITOR
+        QuitSinglePlayer();
 #endif
     }
 

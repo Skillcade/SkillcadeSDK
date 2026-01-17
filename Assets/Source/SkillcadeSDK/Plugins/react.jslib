@@ -7,4 +7,8 @@ mergeInto(LibraryManager.library, {
         console.log("ConnectedToServer");
         window.dispatchReactUnityEvent("ConnectedToServer");
     },
+    QuitSinglePlayer: function () {
+        console.log("QuitPracticeMode");
+        window.dispatchReactUnityEvent("quitPracticeMode");
+    },
 });
