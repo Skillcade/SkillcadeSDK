@@ -10,5 +10,7 @@
 
         public float ReconnectDelay;
         public int ReconnectAttempts;
+        
+        public int TargetPlayerCount;
     }
 }

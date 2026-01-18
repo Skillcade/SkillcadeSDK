@@ -30,6 +30,7 @@ namespace SkillcadeSDK.Connection
                 UseEncryption = UseEncryption,
                 ReconnectDelay = ReconnectDelay,
                 ReconnectAttempts = ReconnectAttempts,
+                TargetPlayerCount = TargetPlayerCount,
             };
         }
     }
