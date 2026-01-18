@@ -12,8 +12,12 @@ namespace SkillcadeSDK.Connection
         [SerializeField] public bool UseEncryption;
         [SerializeField] public bool SkillcadeHubIntegrated;
 
+        [Header("Reconnect")]
         [SerializeField] public float ReconnectDelay;
         [SerializeField] public int ReconnectAttempts;
+
+        [Header("Game")]
+        [SerializeField] public int TargetPlayerCount;
 
         public ConnectionData GetData()
         {
