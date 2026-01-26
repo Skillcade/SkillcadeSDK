@@ -13,9 +13,9 @@ namespace SkillcadeSDK.StateMachine
         where TStateType : Enum
     {
         public TStateType CurrentStateType => _stateMachineSyncer.CurrentState.GetType<TStateType>();
-        
-        public bool IsServer => _connectionController.IsServer;
-        public bool IsClient => _connectionController.IsClient;
+
+        public bool IsServer => _connectionController.IsServer || _stateMachineSyncer.IsServer;
+        public bool IsClient => _connectionController.IsClient || _stateMachineSyncer.IsClient;
 
         [Inject] protected readonly IConnectionController _connectionController;
         [Inject] private readonly INetworkStateMachineSyncer _stateMachineSyncer;
