@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine.Pool;
 
 namespace SkillcadeSDK.Events
 {
@@ -10,7 +11,6 @@ namespace SkillcadeSDK.Events
     public class GameEventBus
     {
         private readonly Dictionary<Type, List<Delegate>> _subscribers = new();
-        private readonly List<Delegate> _iterationCache = new();
 
         /// <summary>
         /// Subscribe to an event of type TEvent.
@@ -50,14 +50,15 @@ namespace SkillcadeSDK.Events
         public void Publish<TEvent>(TEvent @event) where TEvent : IGameEvent
         {
             var eventType = typeof(TEvent);
-            if (_subscribers.TryGetValue(eventType, out var handlers))
+            if (!_subscribers.TryGetValue(eventType, out var handlers))
+                return;
+
+            using var iterationCachePooled = ListPool<Delegate>.Get(out var iterationCache);
+            iterationCache.Clear();
+            iterationCache.AddRange(handlers);
+            foreach (var handler in iterationCache)
             {
-                _iterationCache.Clear();
-                _iterationCache.AddRange(handlers);
-                foreach (var handler in _iterationCache)
-                {
-                    (handler as Action<TEvent>)?.Invoke(@event);
-                }
+                (handler as Action<TEvent>)?.Invoke(@event);
             }
         }
     }
