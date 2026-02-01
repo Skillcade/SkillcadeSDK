@@ -17,7 +17,6 @@ namespace SkillcadeSDK
     {
         [SerializeField] private WebBridge _webBridge;
         [SerializeField] private GameVersionConfig _gameVersionConfig;
-        [SerializeField] private ConnectionConfig _connectionConfig;
         
         public override void Install(IContainerBuilder builder)
         {
@@ -34,7 +33,6 @@ namespace SkillcadeSDK
             
             builder.RegisterInstance(_webBridge);
             builder.RegisterInstance(_gameVersionConfig);
-            builder.RegisterInstance(_connectionConfig);
         }
     }
 }
