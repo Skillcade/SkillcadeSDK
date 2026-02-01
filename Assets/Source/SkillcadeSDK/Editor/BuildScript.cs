@@ -68,6 +68,38 @@ namespace SkillcadeSDK.Editor
             Build(BuildTarget.StandaloneLinux64, (int)StandaloneBuildSubtarget.Server, buildName);
         }
 
+        [MenuItem("Build/Server/Windows LocalHost")]
+        public static void BuildWindowsLocalHostServer()
+        {
+            Debug.Log("Building Windows LocalHost Server...");
+
+            LoadAndSetConnectionConfig("LocalHost");
+            SetupBuildScenes();
+
+            if (!TryGetArgumentValue(BuildNameArgument, out var buildName))
+            {
+                buildName = "ServerBuild.exe"; // Default for Windows
+            }
+
+            Build(BuildTarget.StandaloneWindows64, (int)StandaloneBuildSubtarget.Server, buildName);
+        }
+
+        [MenuItem("Build/Server/Windows London")]
+        public static void BuildWindowsLondonServer()
+        {
+            Debug.Log("Building Windows London Server...");
+
+            LoadAndSetConnectionConfig("London");
+            SetupBuildScenes();
+
+            if (!TryGetArgumentValue(BuildNameArgument, out var buildName))
+            {
+                buildName = "ServerBuild.exe"; // Default for Windows
+            }
+
+            Build(BuildTarget.StandaloneWindows64, (int)StandaloneBuildSubtarget.Server, buildName);
+        }
+
         #endregion
 
         #region WebGL Client Build Methods
@@ -114,6 +146,39 @@ namespace SkillcadeSDK.Editor
             SetupBuildScenes();
 
             Build(BuildTarget.WebGL);
+        }
+
+        [MenuItem("Build/Client/Windows LocalHost")]
+        public static void BuildWindowsLocalHostClient()
+        {
+            Debug.Log("Building Windows LocalHost Client...");
+
+            LoadAndSetConnectionConfig("LocalHost");
+            SetupBuildScenes();
+
+            Build(BuildTarget.StandaloneWindows64);
+        }
+
+        [MenuItem("Build/Client/Windows London")]
+        public static void BuildWindowsLondonClient()
+        {
+            Debug.Log("Building Windows London Client...");
+
+            LoadAndSetConnectionConfig("London");
+            SetupBuildScenes();
+
+            Build(BuildTarget.StandaloneWindows64);
+        }
+
+        [MenuItem("Build/Client/Windows SinglePlayer")]
+        public static void BuildWindowsSinglePlayerClient()
+        {
+            Debug.Log("Building Windows SinglePlayer Client...");
+
+            LoadAndSetConnectionConfig("SinglePlayer");
+            SetupBuildScenes();
+
+            Build(BuildTarget.StandaloneWindows64);
         }
 
         #endregion
