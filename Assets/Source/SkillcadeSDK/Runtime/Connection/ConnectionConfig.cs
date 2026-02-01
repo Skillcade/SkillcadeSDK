@@ -19,6 +19,9 @@ namespace SkillcadeSDK.Connection
         [Header("Game")]
         [SerializeField] public int TargetPlayerCount;
 
+        [Header("Build Configuration")]
+        [SerializeField] public string[] SceneNames;
+
         public ConnectionData GetData()
         {
             return new ConnectionData

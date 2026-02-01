@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using SkillcadeSDK.Connection;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using VContainer;
@@ -10,6 +11,7 @@ namespace SkillcadeSDK.DI
     {
         [SerializeField] private string[] _sceneNames;
         [SerializeField] private MonoInstaller[] _rootInstallers;
+        [SerializeField] private ConnectionConfig _connectionConfig;
         
         private List<MonoInstaller> _loadedInstallers;
         
@@ -20,13 +22,24 @@ namespace SkillcadeSDK.DI
 
         private async void LoadScenesAndBuildAsync()
         {
-            foreach (var sceneName in _sceneNames)
+            // Combine scenes from GameScope and ConnectionConfig
+            var scenesToLoad = new List<string>(_sceneNames);
+
+            if (_connectionConfig != null && _connectionConfig.SceneNames != null)
+            {
+                scenesToLoad.AddRange(_connectionConfig.SceneNames);
+            }
+
+            // Remove duplicates if any
+            var uniqueScenes = new HashSet<string>(scenesToLoad);
+
+            foreach (var sceneName in uniqueScenes)
             {
                 await SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
             }
-            
+
             _loadedInstallers = new List<MonoInstaller>();
-            foreach (var sceneName in _sceneNames)
+            foreach (var sceneName in uniqueScenes)
             {
                 var scene = SceneManager.GetSceneByName(sceneName);
                 if (!scene.IsValid())
@@ -55,9 +68,14 @@ namespace SkillcadeSDK.DI
         protected override void Configure(IContainerBuilder builder)
         {
             base.Configure(builder);
-            
+
             builder.Register<ContainerSingletonWrapper>(Lifetime.Singleton).AsImplementedInterfaces();
             builder.RegisterBuildCallback(AutoInjectTargets);
+
+            if (_connectionConfig != null)
+            {
+                builder.RegisterInstance(_connectionConfig);
+            }
             
             foreach (var installer in _rootInstallers)
             {
