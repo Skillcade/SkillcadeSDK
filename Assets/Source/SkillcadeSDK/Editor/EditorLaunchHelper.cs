@@ -134,15 +134,46 @@ namespace SkillcadeSDK.Editor
             connectionConfigProperty.objectReferenceValue = config;
             so.ApplyModifiedProperties();
 
-            // Mark scene as dirty and save
+            // Mark object as dirty first, then scene, then save
+            EditorUtility.SetDirty(gameScope);
+            EditorUtility.SetDirty(gameScope.gameObject);
             EditorSceneManager.MarkSceneDirty(scene);
-            EditorSceneManager.SaveScene(scene);
+
+            // Save the scene
+            if (!EditorSceneManager.SaveScene(scene))
+            {
+                Debug.LogError("[EditorLaunchHelper] Failed to save BootstrapScene");
+                EditorUtility.DisplayDialog(
+                    "Save Failed",
+                    "Failed to save BootstrapScene. Please try again.",
+                    "OK");
+                return;
+            }
+
+            // Force asset database refresh to ensure changes are persisted
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+
+            // Verify the config was set correctly by reading it back
+            so.Update();
+            var verifyConfig = connectionConfigProperty.objectReferenceValue as ConnectionConfig;
+            if (verifyConfig == null || verifyConfig != config)
+            {
+                Debug.LogError("[EditorLaunchHelper] Config verification failed - config did not persist!");
+                EditorUtility.DisplayDialog(
+                    "Verification Failed",
+                    "The config was set but did not persist correctly.\n\n" +
+                    "This may be a Unity serialization issue. Please try again or set the config manually.",
+                    "OK");
+                return;
+            }
 
             // Select the GameScope object in hierarchy for visibility
             Selection.activeGameObject = gameScope.gameObject;
 
             Debug.Log($"[EditorLaunchHelper] Successfully set connection config to: {configName}");
             Debug.Log($"[EditorLaunchHelper] Config details - Server: {config.ServerAddress}:{config.ServerListenPort}");
+            Debug.Log($"[EditorLaunchHelper] Config verified and persisted successfully");
 
             // Show success dialog
             string sceneInfo = config.SceneNames != null && config.SceneNames.Length > 0
@@ -220,6 +251,70 @@ namespace SkillcadeSDK.Editor
                 $"SkillcadeHub: {currentConfig.SkillcadeHubIntegrated}" +
                 sceneInfo,
                 "OK");
+        }
+
+        [MenuItem("Editor Launch/Debug - Verify Config Persistence")]
+        public static void DebugVerifyConfigPersistence()
+        {
+            if (!File.Exists(BootstrapScenePath))
+            {
+                Debug.LogError($"[EditorLaunchHelper] BootstrapScene not found at: {BootstrapScenePath}");
+                return;
+            }
+
+            // Save current scene if needed
+            if (EditorSceneManager.GetActiveScene().isDirty)
+            {
+                EditorSceneManager.SaveOpenScenes();
+            }
+
+            // Close and reopen scene to simulate editor reload
+            var currentScene = EditorSceneManager.GetActiveScene();
+            EditorSceneManager.OpenScene(BootstrapScenePath, OpenSceneMode.Single);
+
+            var rootObjects = SceneManager.GetActiveScene().GetRootGameObjects();
+            GameScopeWithAdditionalScenes gameScope = null;
+
+            foreach (var rootObject in rootObjects)
+            {
+                gameScope = rootObject.GetComponent<GameScopeWithAdditionalScenes>();
+                if (gameScope != null) break;
+            }
+
+            if (gameScope == null)
+            {
+                Debug.LogError("[EditorLaunchHelper] GameScopeWithAdditionalScenes not found in BootstrapScene");
+                return;
+            }
+
+            var so = new SerializedObject(gameScope);
+            var connectionConfigProperty = so.FindProperty("_connectionConfig");
+            var config = connectionConfigProperty?.objectReferenceValue as ConnectionConfig;
+
+            if (config == null)
+            {
+                Debug.LogError("[EditorLaunchHelper] VERIFICATION FAILED: Config is NULL after scene reload!");
+                EditorUtility.DisplayDialog(
+                    "Verification Failed",
+                    "Config is NULL after scene reload.\n\n" +
+                    "This indicates a serialization issue. The config reference is not being saved properly.",
+                    "OK");
+            }
+            else
+            {
+                Debug.Log($"[EditorLaunchHelper] VERIFICATION PASSED: Config '{config.name}' persisted correctly!");
+                Debug.Log($"[EditorLaunchHelper] Server: {config.ServerAddress}:{config.ServerListenPort}");
+
+                // Also check using direct field access
+                var so2 = new SerializedObject(gameScope);
+                Debug.Log($"[EditorLaunchHelper] SerializedObject verification: {so2.FindProperty("_connectionConfig").objectReferenceValue}");
+
+                EditorUtility.DisplayDialog(
+                    "Verification Passed",
+                    $"Config '{config.name}' persisted correctly!\n\n" +
+                    $"Server: {config.ServerAddress}:{config.ServerListenPort}",
+                    "OK");
+            }
         }
 
         #endregion
