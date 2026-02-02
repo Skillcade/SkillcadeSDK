@@ -18,6 +18,10 @@ namespace SkillcadeSDK.Replays
         public float Transparency { get; private set; }
         public Color Color { get; private set; }
         
+        public int FrameOffset => _frameOffset;
+        public int MinTick { get; private set; }
+        public int MaxTick { get; private set; }
+
         public IReadOnlyList<ReplayReadFrameData> Frames => _frames;
         public IReadOnlyDictionary<int, ReplayObjectHandler> ReplayObjects => _replayObjects;
 
@@ -26,8 +30,10 @@ namespace SkillcadeSDK.Replays
         private readonly List<ReplayReadFrameData> _frames;
         private readonly List<ReplayEvent> _lastFrameEvents;
         private readonly Dictionary<int, ReplayObjectHandler> _replayObjects;
-        
+        private readonly Dictionary<int, int> _tickToFrameIndex;
+
         private int _currentFrameId;
+        private int _frameOffset;
 
         public ReplayClientWorld(int worldId, List<ReplayReadFrameData> frames, float transparency)
         {
@@ -38,6 +44,18 @@ namespace SkillcadeSDK.Replays
             _currentFrameId = -1;
             Transparency = transparency;
             Color = Color.white;
+
+            // Build tick-to-frame index for offset calculation
+            _tickToFrameIndex = new Dictionary<int, int>();
+            if (frames.Count <= 0) return;
+            
+            MinTick = frames[0].Tick;
+            MaxTick = frames[^1].Tick;
+
+            foreach (var frame in frames)
+            {
+                _tickToFrameIndex.TryAdd(frame.Tick, frame.FrameId);
+            }
         }
         
         public void RegisterObject(ReplayObjectHandler handler)
@@ -94,15 +112,33 @@ namespace SkillcadeSDK.Replays
             _replayObjects.Clear();
         }
         
+        public void SetFrameOffset(int offset)
+        {
+            _frameOffset = offset;
+            Debug.Log($"[ReplayClientWorld] World {WorldId} frame offset set to {offset}");
+        }
+
+        public bool TryGetFrameIndexForTick(int tick, out int frameIndex)
+        {
+            return _tickToFrameIndex.TryGetValue(tick, out frameIndex);
+        }
+
+        public bool HasTick(int tick)
+        {
+            return _tickToFrameIndex.ContainsKey(tick);
+        }
+
         public void ReadFrame(int frameId)
         {
-            if (_currentFrameId == frameId)
-                return;
-            
-            if (frameId >= _frames.Count)
+            int actualFrameId = frameId + _frameOffset;
+
+            if (_currentFrameId == actualFrameId)
                 return;
 
-            bool isMovingBakwards = frameId < _currentFrameId;
+            if (actualFrameId < 0 || actualFrameId >= _frames.Count)
+                return;
+
+            bool isMovingBakwards = actualFrameId < _currentFrameId;
             if (isMovingBakwards)
             {
                 foreach (var lastFrameEvent in _lastFrameEvents)
@@ -111,10 +147,10 @@ namespace SkillcadeSDK.Replays
                 }
             }
 
-            _currentFrameId = frameId;
+            _currentFrameId = actualFrameId;
             _lastFrameEvents.Clear();
-            
-            var frame = _frames[frameId];
+
+            var frame = _frames[actualFrameId];
             
             using var stream = new MemoryStream(frame.Data);
             using var binaryReader = new BinaryReader(stream);

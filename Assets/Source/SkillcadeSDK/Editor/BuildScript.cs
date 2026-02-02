@@ -187,23 +187,27 @@ namespace SkillcadeSDK.Editor
 
         private static void LoadAndSetConnectionConfig(string configName)
         {
-            // Load config from Resources
-            var config = Resources.Load<ConnectionConfig>($"Configs/Connection/{configName}");
-            if (config == null)
-            {
-                Debug.LogError($"Connection config '{configName}' not found in Resources/Configs/Connection/");
-                EditorApplication.Exit(1);
-                return;
-            }
-
-            Debug.Log($"Loaded connection config: {configName}");
-
             // Find BootstrapScene
             if (!File.Exists(BootstrapScenePath))
             {
                 Debug.LogError($"BootstrapScene not found at: {BootstrapScenePath}");
                 EditorApplication.Exit(1);
                 return;
+            }
+            
+            // Check if we need to save current scene
+            if (EditorSceneManager.GetActiveScene().isDirty)
+            {
+                bool saveCurrentScene = EditorUtility.DisplayDialog(
+                    "Save Current Scene?",
+                    "The current scene has unsaved changes. Do you want to save before switching configs?",
+                    "Save",
+                    "Don't Save");
+
+                if (saveCurrentScene)
+                {
+                    EditorSceneManager.SaveOpenScenes();
+                }
             }
 
             var scene = EditorSceneManager.OpenScene(BootstrapScenePath, OpenSceneMode.Single);
@@ -224,6 +228,17 @@ namespace SkillcadeSDK.Editor
                 EditorApplication.Exit(1);
                 return;
             }
+            
+            // Load config from Resources
+            var config = Resources.Load<ConnectionConfig>($"Configs/Connection/{configName}");
+            if (config == null)
+            {
+                Debug.LogError($"Connection config '{configName}' not found in Resources/Configs/Connection/");
+                EditorApplication.Exit(1);
+                return;
+            }
+
+            Debug.Log($"Loaded connection config: {configName}");
 
             // Set the connection config using SerializedObject for proper serialization
             var so = new SerializedObject(gameScope);

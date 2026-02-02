@@ -3,6 +3,7 @@ using SkillcadeSDK.Connection;
 using SkillcadeSDK.DI;
 using UnityEditor;
 using UnityEditor.SceneManagement;
+using UnityEngine.SceneManagement;
 using UnityEngine;
 
 namespace SkillcadeSDK.Editor
@@ -50,6 +51,57 @@ namespace SkillcadeSDK.Editor
         /// <param name="configName">Name of the config file (without extension)</param>
         public static void SetConnectionConfig(string configName)
         {
+            // Find BootstrapScene
+            if (!File.Exists(BootstrapScenePath))
+            {
+                Debug.LogError($"[EditorLaunchHelper] BootstrapScene not found at: {BootstrapScenePath}");
+                EditorUtility.DisplayDialog(
+                    "BootstrapScene Not Found",
+                    $"BootstrapScene not found at: {BootstrapScenePath}\n\n" +
+                    "Please ensure the scene exists in the project.",
+                    "OK");
+                return;
+            }
+            
+            // Check if we need to save current scene
+            if (EditorSceneManager.GetActiveScene().isDirty)
+            {
+                bool saveCurrentScene = EditorUtility.DisplayDialog(
+                    "Save Current Scene?",
+                    "The current scene has unsaved changes. Do you want to save before switching configs?",
+                    "Save",
+                    "Don't Save");
+
+                if (saveCurrentScene)
+                {
+                    EditorSceneManager.SaveOpenScenes();
+                }
+            }
+            
+            // Open BootstrapScene
+            var scene = EditorSceneManager.OpenScene(BootstrapScenePath, OpenSceneMode.Single);
+            
+            // Find GameScopeWithAdditionalScenes component
+            var rootObjects = scene.GetRootGameObjects();
+            GameScopeWithAdditionalScenes gameScope = null;
+
+            foreach (var rootObject in rootObjects)
+            {
+                gameScope = rootObject.GetComponent<GameScopeWithAdditionalScenes>();
+                if (gameScope != null) break;
+            }
+            
+            if (gameScope == null)
+            {
+                Debug.LogError("[EditorLaunchHelper] GameScopeWithAdditionalScenes not found in BootstrapScene");
+                EditorUtility.DisplayDialog(
+                    "GameScope Not Found",
+                    "GameScopeWithAdditionalScenes component not found in BootstrapScene.\n\n" +
+                    "Please ensure the component exists in the scene.",
+                    "OK");
+                return;
+            }
+            
             // Load config from Resources
             var config = Resources.Load<ConnectionConfig>($"Configs/Connection/{configName}");
             if (config == null)
@@ -65,57 +117,6 @@ namespace SkillcadeSDK.Editor
 
             Debug.Log($"[EditorLaunchHelper] Loaded connection config: {configName}");
 
-            // Find BootstrapScene
-            if (!File.Exists(BootstrapScenePath))
-            {
-                Debug.LogError($"[EditorLaunchHelper] BootstrapScene not found at: {BootstrapScenePath}");
-                EditorUtility.DisplayDialog(
-                    "BootstrapScene Not Found",
-                    $"BootstrapScene not found at: {BootstrapScenePath}\n\n" +
-                    "Please ensure the scene exists in the project.",
-                    "OK");
-                return;
-            }
-
-            // Check if we need to save current scene
-            if (EditorSceneManager.GetActiveScene().isDirty)
-            {
-                bool saveCurrentScene = EditorUtility.DisplayDialog(
-                    "Save Current Scene?",
-                    "The current scene has unsaved changes. Do you want to save before switching configs?",
-                    "Save",
-                    "Don't Save");
-
-                if (saveCurrentScene)
-                {
-                    EditorSceneManager.SaveOpenScenes();
-                }
-            }
-
-            // Open BootstrapScene
-            var scene = EditorSceneManager.OpenScene(BootstrapScenePath, OpenSceneMode.Single);
-
-            // Find GameScopeWithAdditionalScenes component
-            var rootObjects = scene.GetRootGameObjects();
-            GameScopeWithAdditionalScenes gameScope = null;
-
-            foreach (var rootObject in rootObjects)
-            {
-                gameScope = rootObject.GetComponent<GameScopeWithAdditionalScenes>();
-                if (gameScope != null) break;
-            }
-
-            if (gameScope == null)
-            {
-                Debug.LogError("[EditorLaunchHelper] GameScopeWithAdditionalScenes not found in BootstrapScene");
-                EditorUtility.DisplayDialog(
-                    "GameScope Not Found",
-                    "GameScopeWithAdditionalScenes component not found in BootstrapScene.\n\n" +
-                    "Please ensure the component exists in the scene.",
-                    "OK");
-                return;
-            }
-
             // Set the connection config using SerializedObject for proper serialization
             var so = new SerializedObject(gameScope);
             var connectionConfigProperty = so.FindProperty("_connectionConfig");
@@ -130,7 +131,7 @@ namespace SkillcadeSDK.Editor
                     "OK");
                 return;
             }
-
+            
             connectionConfigProperty.objectReferenceValue = config;
             so.ApplyModifiedProperties();
 

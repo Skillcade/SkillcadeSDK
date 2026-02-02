@@ -22,6 +22,9 @@ namespace SkillcadeSDK.Replays
         public float TotalTime => _totalTime;
         public float TickInterval => _frameInterval;
         
+        public int CurrentTick => _currentTick;
+        public int ReferenceTick => _referenceTick;
+
         public int CurrentActiveWorldId { get; private set; }
         public ReplayClientWorld CurrentActiveWorld => _clientWorlds.ContainsKey(CurrentActiveWorldId) ? _clientWorlds[CurrentActiveWorldId] : null;
         public IReadOnlyDictionary<int, ReplayClientWorld> ClientWorlds => _clientWorlds;
@@ -38,6 +41,8 @@ namespace SkillcadeSDK.Replays
         [SerializeField] private float _frameInterval;
         [SerializeField] private int _currentFrameId;
         [SerializeField] private int _maxFramesCount;
+        [SerializeField] private int _referenceTick;
+        [SerializeField] private int _currentTick;
 
         [Inject] private readonly IObjectResolver _objectResolver;
         
@@ -52,7 +57,15 @@ namespace SkillcadeSDK.Replays
             _frameTimer = 0f;
             _frameInterval = 1.0f / _tickRate;
             _currentTime = 0f;
-            _maxFramesCount = _clientWorlds.Select(x => x.Value.Frames.Count).Max();
+
+            // Calculate frame offsets to align all worlds by tick
+            CalculateFrameOffsets();
+
+            // Max playback frames is the shortest remaining frame count after applying offsets
+            _maxFramesCount = _clientWorlds.Values
+                .Select(w => w.Frames.Count - w.FrameOffset)
+                .Min();
+            
             _totalTime = _maxFramesCount * _frameInterval;
 
             if (_totalTime <= 0)
@@ -63,6 +76,7 @@ namespace SkillcadeSDK.Replays
             }
             
             _currentFrameId = -1;
+            _currentTick = _referenceTick;
             CurrentActiveWorldId = -1;
             SetActiveWorld(0);
             ReadFrame(0);
@@ -153,10 +167,16 @@ namespace SkillcadeSDK.Replays
                     int frameSize = reader.ReadInt();
                     var frameData = binaryReader.ReadBytes(frameSize);
                     
+                    using var frameStream = new MemoryStream(frameData);
+                    using var frameReader = new BinaryReader(frameStream);
+                    var replayReader = new ReplayReader(frameReader);
+                    int tick  = replayReader.ReadInt();
+                    
                     frames.Add(new ReplayReadFrameData
                     {
                         FrameId = frameId,
-                        Data = frameData
+                        Data = frameData,
+                        Tick = tick,
                     });
                 }
 
@@ -164,7 +184,7 @@ namespace SkillcadeSDK.Replays
                 _objectResolver.Inject(world);
                 _clientWorlds.Add(clientId, world);
             }
-            
+
             return true;
         }
 
@@ -220,6 +240,59 @@ namespace SkillcadeSDK.Replays
             foreach (var clientWorld in _clientWorlds)
             {
                 clientWorld.Value.ReadFrame(frameId);
+            }
+
+            // Update current tick from active world
+            if (CurrentActiveWorld == null) return;
+            
+            int actualFrame = _currentFrameId + CurrentActiveWorld.FrameOffset;
+            if (actualFrame >= 0 && actualFrame < CurrentActiveWorld.Frames.Count)
+                _currentTick = CurrentActiveWorld.Frames[actualFrame].Tick;
+        }
+
+        private void CalculateFrameOffsets()
+        {
+            var worlds = _clientWorlds.Values.ToList();
+            if (worlds.Count == 0)
+                return;
+
+            // Find first common tick: earliest tick present in ALL worlds
+            // Start from the world with the highest MinTick (that's the bottleneck)
+            int searchStart = worlds.Max(w => w.MinTick);
+            int searchEnd = worlds.Min(w => w.MaxTick);
+
+            int commonTick = -1;
+            for (int tick = searchStart; tick <= searchEnd; tick++)
+            {
+                if (worlds.All(w => w.HasTick(tick)))
+                {
+                    commonTick = tick;
+                    break;
+                }
+            }
+
+            if (commonTick == -1)
+            {
+                Debug.LogError("[ReplayReadService] No common tick found across all worlds!");
+                _referenceTick = 0;
+                return;
+            }
+
+            _referenceTick = commonTick;
+            Debug.Log($"[ReplayReadService] Reference tick for alignment: {_referenceTick}");
+
+            foreach (var world in worlds)
+            {
+                if (world.TryGetFrameIndexForTick(commonTick, out int frameIndex))
+                {
+                    world.SetFrameOffset(frameIndex);
+                    Debug.Log($"[ReplayReadService] World {world.WorldId}: offset={frameIndex}, " +
+                              $"tick range {world.MinTick}-{world.MaxTick}");
+                }
+                else
+                {
+                    Debug.LogError($"[ReplayReadService] World {world.WorldId} missing common tick {commonTick}");
+                }
             }
         }
     }

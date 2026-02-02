@@ -4,5 +4,6 @@
     {
         public int FrameId;
         public byte[] Data;
+        public int Tick;
     }
 }
