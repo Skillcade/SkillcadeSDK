@@ -84,7 +84,7 @@ namespace SkillcadeSDK.Replays
 #if UNITY_EDITOR
             return UnityEditor.EditorUtility.OpenFilePanel(
                 "Select replay file",
-                Application.persistentDataPath,
+                Application.streamingAssetsPath,
                 ReplayExtension);
 #elif UNITY_STANDALONE_WIN
             return WindowsFilePanelUtility.OpenFilePanel(ReplayExtension, FileFilterDescription);
