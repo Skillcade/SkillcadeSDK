@@ -131,25 +131,44 @@ namespace SkillcadeSDK.Replays
         public void ReadFrame(int frameId)
         {
             int actualFrameId = frameId + _frameOffset;
-
             if (_currentFrameId == actualFrameId)
                 return;
 
             if (actualFrameId < 0 || actualFrameId >= _frames.Count)
                 return;
 
-            bool isMovingBakwards = actualFrameId < _currentFrameId;
-            if (isMovingBakwards)
+            if (_currentFrameId >= 0)
             {
-                foreach (var lastFrameEvent in _lastFrameEvents)
+                bool isMovingBakwards = actualFrameId < _currentFrameId;
+                if (isMovingBakwards)
                 {
-                    lastFrameEvent.Undo(WorldId);
+                    foreach (var lastFrameEvent in _lastFrameEvents)
+                    {
+                        lastFrameEvent.Undo(WorldId);
+                    }
                 }
+
+                _currentFrameId = actualFrameId;
+                _lastFrameEvents.Clear();
+                
+                ReadFrameInternal(actualFrameId, isMovingBakwards);
             }
+            else
+            {
+                _currentFrameId = actualFrameId;
+                Debug.Log($"[ReplayClientWorld] Initialize world {WorldId} from frame {actualFrameId}");
+                for (int i = 0; i < actualFrameId; i++)
+                {
+                    ReadFrameInternal(i, false);
+                }
+                
+                ReadFrameInternal(actualFrameId, false);
+            }
+        }
 
-            _currentFrameId = actualFrameId;
-            _lastFrameEvents.Clear();
-
+        private void ReadFrameInternal(int actualFrameId, bool isMovingBakwards)
+        {
+            Debug.Log($"[ReplayClientWorld] Read frame {actualFrameId} in world {WorldId}");
             var frame = _frames[actualFrameId];
             
             using var stream = new MemoryStream(frame.Data);

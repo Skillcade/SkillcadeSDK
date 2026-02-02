@@ -17,7 +17,9 @@ namespace SkillcadeSDK.Editor
         private const string BuildPathArgument = "-buildPath";
         private const string BuildNameArgument = "-buildName";
         private const string BuildDevelopmentArgument = "-development";
+        
         private const string BootstrapScenePath = "Assets/Scenes/BootstrapScene.unity";
+        private const string DefaultBuildPath = "Builds/";
 
         #region Server Build Methods
 
@@ -47,7 +49,7 @@ namespace SkillcadeSDK.Editor
             }
 
             // Build with StandaloneBuildSubtarget.Server (critical for Edgegap)
-            Build(BuildTarget.StandaloneLinux64, (int)StandaloneBuildSubtarget.Server, buildName);
+            Build(BuildTarget.StandaloneLinux64, (int)StandaloneBuildSubtarget.Server, buildName, DefaultBuildPath + "EdgegapServer/");
         }
 
         [MenuItem("Build/Server/London")]
@@ -60,12 +62,10 @@ namespace SkillcadeSDK.Editor
 
             if (!TryGetArgumentValue(BuildNameArgument, out var buildName))
             {
-                Debug.LogError("Build name not specified");
-                EditorApplication.Exit(1);
-                return;
+                buildName = "LondonServer";
             }
 
-            Build(BuildTarget.StandaloneLinux64, (int)StandaloneBuildSubtarget.Server, buildName);
+            Build(BuildTarget.StandaloneLinux64, (int)StandaloneBuildSubtarget.Server, buildName, DefaultBuildPath + "LondonServer/");
         }
 
         [MenuItem("Build/Server/Windows LocalHost")]
@@ -81,7 +81,7 @@ namespace SkillcadeSDK.Editor
                 buildName = "ServerBuild.exe"; // Default for Windows
             }
 
-            Build(BuildTarget.StandaloneWindows64, (int)StandaloneBuildSubtarget.Server, buildName);
+            Build(BuildTarget.StandaloneWindows64, (int)StandaloneBuildSubtarget.Server, buildName, DefaultBuildPath + "WindowsServer/");
         }
 
         [MenuItem("Build/Server/Windows London")]
@@ -97,7 +97,7 @@ namespace SkillcadeSDK.Editor
                 buildName = "ServerBuild.exe"; // Default for Windows
             }
 
-            Build(BuildTarget.StandaloneWindows64, (int)StandaloneBuildSubtarget.Server, buildName);
+            Build(BuildTarget.StandaloneWindows64, (int)StandaloneBuildSubtarget.Server, buildName, DefaultBuildPath + "WindowsServer/");
         }
 
         #endregion
@@ -112,7 +112,12 @@ namespace SkillcadeSDK.Editor
             LoadAndSetConnectionConfig("LocalHost");
             SetupBuildScenes();
 
-            Build(BuildTarget.WebGL);
+            if (!TryGetArgumentValue(BuildNameArgument, out var buildName))
+            {
+                buildName = "WebGL-Client";
+            }
+
+            Build(BuildTarget.WebGL, buildName: buildName, defaultBuildPath: DefaultBuildPath + "WebGL-Client/");
         }
 
         [MenuItem("Build/Client/London")]
@@ -123,7 +128,12 @@ namespace SkillcadeSDK.Editor
             LoadAndSetConnectionConfig("London");
             SetupBuildScenes();
 
-            Build(BuildTarget.WebGL);
+            if (!TryGetArgumentValue(BuildNameArgument, out var buildName))
+            {
+                buildName = "WebGL-Client";
+            }
+
+            Build(BuildTarget.WebGL, buildName: buildName, defaultBuildPath: DefaultBuildPath + "WebGL-Client/");
         }
 
         [MenuItem("Build/Client/SkillcadeHub")]
@@ -134,7 +144,12 @@ namespace SkillcadeSDK.Editor
             LoadAndSetConnectionConfig("SkillcadeHub");
             SetupBuildScenes();
 
-            Build(BuildTarget.WebGL);
+            if (!TryGetArgumentValue(BuildNameArgument, out var buildName))
+            {
+                buildName = "WebGL-Client";
+            }
+
+            Build(BuildTarget.WebGL, buildName: buildName, defaultBuildPath: DefaultBuildPath + "WebGL-Client/");
         }
 
         [MenuItem("Build/Client/SinglePlayer")]
@@ -145,7 +160,12 @@ namespace SkillcadeSDK.Editor
             LoadAndSetConnectionConfig("SinglePlayer");
             SetupBuildScenes();
 
-            Build(BuildTarget.WebGL);
+            if (!TryGetArgumentValue(BuildNameArgument, out var buildName))
+            {
+                buildName = "WebGL-Client-SinglePlayer";
+            }
+
+            Build(BuildTarget.WebGL, buildName: buildName, defaultBuildPath: DefaultBuildPath + "WebGL-Client-SinglePlayer/");
         }
 
         [MenuItem("Build/Client/Windows LocalHost")]
@@ -156,7 +176,12 @@ namespace SkillcadeSDK.Editor
             LoadAndSetConnectionConfig("LocalHost");
             SetupBuildScenes();
 
-            Build(BuildTarget.StandaloneWindows64);
+            if (!TryGetArgumentValue(BuildNameArgument, out var buildName))
+            {
+                buildName = "Windows-Client";
+            }
+
+            Build(BuildTarget.StandaloneWindows64, buildName: buildName, defaultBuildPath: DefaultBuildPath + "Windows-Client/");
         }
 
         [MenuItem("Build/Client/Windows London")]
@@ -167,7 +192,12 @@ namespace SkillcadeSDK.Editor
             LoadAndSetConnectionConfig("London");
             SetupBuildScenes();
 
-            Build(BuildTarget.StandaloneWindows64);
+            if (!TryGetArgumentValue(BuildNameArgument, out var buildName))
+            {
+                buildName = "Windows-Client";
+            }
+
+            Build(BuildTarget.StandaloneWindows64, buildName: buildName, defaultBuildPath: DefaultBuildPath + "Windows-Client/");
         }
 
         [MenuItem("Build/Client/Windows SinglePlayer")]
@@ -178,7 +208,12 @@ namespace SkillcadeSDK.Editor
             LoadAndSetConnectionConfig("SinglePlayer");
             SetupBuildScenes();
 
-            Build(BuildTarget.StandaloneWindows64);
+            if (!TryGetArgumentValue(BuildNameArgument, out var buildName))
+            {
+                buildName = "Windows-Client-SinglePlayer";
+            }
+
+            Build(BuildTarget.StandaloneWindows64, buildName: buildName, defaultBuildPath: DefaultBuildPath + "Windows-Client-SinglePlayer/");
         }
 
         #endregion
@@ -357,13 +392,18 @@ namespace SkillcadeSDK.Editor
             return null;
         }
 
-        private static void Build(BuildTarget target, int subtarget = 0, string buildName = "")
+        private static void Build(BuildTarget target, int subtarget = 0, string buildName = "", string defaultBuildPath = null)
         {
             if (!TryGetArgumentValue(BuildPathArgument, out string buildPath))
             {
-                Debug.LogError("Build path not specified");
-                EditorApplication.Exit(1);
-                return;
+                if (string.IsNullOrEmpty(defaultBuildPath))
+                {
+                    Debug.LogError("Build path not specified");
+                    EditorApplication.Exit(1);
+                    return;
+                }
+
+                buildPath = defaultBuildPath;
             }
 
             Debug.Log($"Build path: {buildPath}");
