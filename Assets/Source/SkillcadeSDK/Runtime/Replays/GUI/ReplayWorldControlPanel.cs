@@ -33,6 +33,24 @@ namespace SkillcadeSDK.Replays.GUI
             }
         }
 
+        private void Update()
+        {
+            if (_items == null)
+                return;
+            
+            foreach (var item in _items)
+            {
+                if (!_replayReadService.ClientWorlds.TryGetValue(item.WorldId, out var clientWorld))
+                    continue;
+                
+                if (clientWorld.Tick == item.Tick)
+                    continue;
+                
+                item.Tick = clientWorld.Tick;
+                item.WorldTickText.text = clientWorld.Tick.ToString();
+            }
+        }
+
         private void InitializeItem(ReplayWorldControlItem item, ReplayClientWorld clientWorld)
         {
             int worldId = clientWorld.WorldId;
@@ -41,6 +59,9 @@ namespace SkillcadeSDK.Replays.GUI
             item.WorldNameText.text = worldId == ReplayReadService.ServerWorldId
                 ? "Server View"
                 : $"Player_{worldId} View";
+
+            item.Tick = clientWorld.Tick;
+            item.WorldTickText.text = clientWorld.Tick.ToString();
             
             item.SelectButton.onClick.AddListener(() => SetActiveWorld(worldId));
             
