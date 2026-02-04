@@ -10,18 +10,6 @@ namespace SkillcadeSDK.Events
     }
 
     /// <summary>
-    /// Published when a player marks themselves as ready.
-    /// </summary>
-    public readonly struct PlayerReadyEvent : IGameEvent
-    {public readonly int WinnerId;
-
-        public PlayerReadyEvent(int winnerId)
-        {
-            WinnerId = winnerId;
-        }
-    }
-
-    /// <summary>
     /// Published when all players are ready and we can proceed to countdown.
     /// </summary>
     public readonly struct AllPlayersReadyEvent : IGameEvent

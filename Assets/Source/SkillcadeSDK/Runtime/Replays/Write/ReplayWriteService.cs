@@ -182,7 +182,7 @@ namespace SkillcadeSDK.Replays
             int frameId = _localFrameData.Count;
             _localFrameData.Add(frameData);
             
-            Debug.Log($"[ReplayWriteService] Frame {frameId} on tick {tick} write {frameData.Length} bytes, as server: {isServer}");
+            //Debug.Log($"[ReplayWriteService] Frame {frameId} on tick {tick} write {frameData.Length} bytes, as server: {isServer}");
             
             if (isServer)
                 AddFrameFromClient(0, frameId, frameData);
