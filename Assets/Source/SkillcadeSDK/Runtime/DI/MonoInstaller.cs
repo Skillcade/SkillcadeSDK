@@ -9,8 +9,6 @@ namespace SkillcadeSDK.DI
     {
         [SerializeField] protected List<GameObject> _autoInjectGameObjects;
         
-        public virtual void Prepare() { }
-        
         public abstract void Install(IContainerBuilder builder);
         
         public virtual IEnumerable<GameObject> GetAutoInjectGameObjects() => _autoInjectGameObjects;

@@ -8,33 +8,19 @@ namespace SkillcadeSDK.DI
     {
         [SerializeField] private MonoInstaller[] _installers;
 
-        protected override void Awake()
-        {
-            foreach (var installer in _installers)
-            {
-                installer.Prepare();
-            }
-            base.Awake();
-        }
-
         protected override void Configure(IContainerBuilder builder)
         {
             EntryPointsBuilder.EnsureDispatcherRegistered(builder);
             
             builder.Register<ContainerSingletonWrapper>(Lifetime.Singleton).AsImplementedInterfaces();
             builder.RegisterBuildCallback(AutoInjectTargets);
-
-            var allInstallers = FindObjectsByType<MonoInstaller>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
-            Debug.Log($"[GameScopeWithInstallers] Found {allInstallers.Length} installers");
-
-            Debug.Log("[GameScopeWithInstallers] Process installers");
-            foreach (var installer in allInstallers)
+            
+            foreach (var installer in _installers)
             {
                 if (installer != null)
                     installer.Install(builder);
             }
 
-            Debug.Log("[GameScopeWithInstallers] Finish process installers");
             base.Configure(builder);
         }
 
