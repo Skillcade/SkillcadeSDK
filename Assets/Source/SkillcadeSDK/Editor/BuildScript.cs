@@ -1,492 +1,210 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using SkillcadeSDK.Connection;
-using SkillcadeSDK.DI;
 using UnityEditor;
 using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace SkillcadeSDK.Editor
 {
     public static class BuildScript
     {
-        private const string BuildPathArgument = "-buildPath";
-        private const string BuildNameArgument = "-buildName";
-        private const string BuildDevelopmentArgument = "-development";
-        
-        private const string BootstrapScenePath = "Assets/Scenes/BootstrapScene.unity";
+        private const string BuildConfigArgument = "-buildConfig";
         private const string DefaultBuildPath = "Builds/";
 
-        #region Server Build Methods
-
-        [MenuItem("Build/Server/SkillcadeHub (Edgegap)")]
-        public static void BuildSkillcadeHubServer()
+        [MenuItem("Build/Build From Selected Config", isValidateFunction: false)]
+        public static void BuildFromSelectedConfig()
         {
-            Debug.Log("Building SkillcadeHub Server for Edgegap...");
-
-            // Load and set connection config
-            LoadAndSetConnectionConfig("SkillcadeHub");
-
-            // Setup build scenes from config and GameScope
-            SetupBuildScenes();
-
-            // Add Edgegap-specific compiler defines
-            var buildTargetGroup = BuildPipeline.GetBuildTargetGroup(BuildTarget.StandaloneLinux64);
-            var defines = PlayerSettings.GetScriptingDefineSymbolsForGroup(buildTargetGroup);
-            if (!defines.Contains("EDGEGAP_PLUGIN_SERVERS"))
+            var selectedObject = Selection.activeObject;
+            if (selectedObject is BuildConfiguration config)
             {
-                PlayerSettings.SetScriptingDefineSymbolsForGroup(buildTargetGroup,
-                    defines + ";EDGEGAP_PLUGIN_SERVERS");
+                BuildFromConfig(config);
             }
-
-            if (!TryGetArgumentValue(BuildNameArgument, out var buildName))
+            else
             {
-                buildName = "ServerBuild"; // Default for Edgegap
+                Debug.LogError("No BuildConfiguration selected.");
+                EditorUtility.DisplayDialog("Build Error", "Please select a BuildConfiguration asset first.", "OK");
             }
-
-            // Build with StandaloneBuildSubtarget.Server (critical for Edgegap)
-            Build(BuildTarget.StandaloneLinux64, (int)StandaloneBuildSubtarget.Server, buildName, DefaultBuildPath + "EdgegapServer/");
+        }
+        
+        [MenuItem("Build/Build From Selected Config", isValidateFunction: true)]
+        public static bool BuildFromSelectedConfigValidation()
+        {
+            return Selection.activeObject is BuildConfiguration;
         }
 
-        [MenuItem("Build/Server/London")]
-        public static void BuildLondonServer()
+        public static void BuildFromCommandLine()
         {
-            Debug.Log("Building London Server...");
-
-            LoadAndSetConnectionConfig("London");
-            SetupBuildScenes();
-
-            if (!TryGetArgumentValue(BuildNameArgument, out var buildName))
+            if (TryGetArgumentValue(BuildConfigArgument, out var configPath))
             {
-                buildName = "LondonServer";
-            }
-
-            Build(BuildTarget.StandaloneLinux64, (int)StandaloneBuildSubtarget.Server, buildName, DefaultBuildPath + "LondonServer/");
-        }
-
-        [MenuItem("Build/Server/Windows LocalHost")]
-        public static void BuildWindowsLocalHostServer()
-        {
-            Debug.Log("Building Windows LocalHost Server...");
-
-            LoadAndSetConnectionConfig("LocalHost");
-            SetupBuildScenes();
-
-            if (!TryGetArgumentValue(BuildNameArgument, out var buildName))
-            {
-                buildName = "ServerBuild.exe"; // Default for Windows
-            }
-
-            Build(BuildTarget.StandaloneWindows64, (int)StandaloneBuildSubtarget.Server, buildName, DefaultBuildPath + "WindowsServer/");
-        }
-
-        [MenuItem("Build/Server/Windows London")]
-        public static void BuildWindowsLondonServer()
-        {
-            Debug.Log("Building Windows London Server...");
-
-            LoadAndSetConnectionConfig("London");
-            SetupBuildScenes();
-
-            if (!TryGetArgumentValue(BuildNameArgument, out var buildName))
-            {
-                buildName = "ServerBuild.exe"; // Default for Windows
-            }
-
-            Build(BuildTarget.StandaloneWindows64, (int)StandaloneBuildSubtarget.Server, buildName, DefaultBuildPath + "WindowsServer/");
-        }
-
-        #endregion
-
-        #region WebGL Client Build Methods
-
-        [MenuItem("Build/Client/LocalHost")]
-        public static void BuildLocalHostClient()
-        {
-            Debug.Log("Building LocalHost WebGL Client...");
-
-            LoadAndSetConnectionConfig("LocalHost");
-            SetupBuildScenes();
-
-            if (!TryGetArgumentValue(BuildNameArgument, out var buildName))
-            {
-                buildName = "WebGL-Client";
-            }
-
-            Build(BuildTarget.WebGL, buildName: buildName, defaultBuildPath: DefaultBuildPath + "WebGL-Client/");
-        }
-
-        [MenuItem("Build/Client/London")]
-        public static void BuildLondonClient()
-        {
-            Debug.Log("Building London WebGL Client...");
-
-            LoadAndSetConnectionConfig("London");
-            SetupBuildScenes();
-
-            if (!TryGetArgumentValue(BuildNameArgument, out var buildName))
-            {
-                buildName = "WebGL-Client";
-            }
-
-            Build(BuildTarget.WebGL, buildName: buildName, defaultBuildPath: DefaultBuildPath + "WebGL-Client/");
-        }
-
-        [MenuItem("Build/Client/SkillcadeHub")]
-        public static void BuildSkillcadeHubClient()
-        {
-            Debug.Log("Building SkillcadeHub WebGL Client...");
-
-            LoadAndSetConnectionConfig("SkillcadeHub");
-            SetupBuildScenes();
-
-            if (!TryGetArgumentValue(BuildNameArgument, out var buildName))
-            {
-                buildName = "WebGL-Client";
-            }
-
-            Build(BuildTarget.WebGL, buildName: buildName, defaultBuildPath: DefaultBuildPath + "WebGL-Client/");
-        }
-
-        [MenuItem("Build/Client/SinglePlayer")]
-        public static void BuildSinglePlayerClient()
-        {
-            Debug.Log("Building SinglePlayer WebGL Client...");
-
-            LoadAndSetConnectionConfig("SinglePlayer");
-            SetupBuildScenes();
-
-            if (!TryGetArgumentValue(BuildNameArgument, out var buildName))
-            {
-                buildName = "WebGL-Client-SinglePlayer";
-            }
-
-            Build(BuildTarget.WebGL, buildName: buildName, defaultBuildPath: DefaultBuildPath + "WebGL-Client-SinglePlayer/");
-        }
-
-        [MenuItem("Build/Client/Windows LocalHost")]
-        public static void BuildWindowsLocalHostClient()
-        {
-            Debug.Log("Building Windows LocalHost Client...");
-
-            LoadAndSetConnectionConfig("LocalHost");
-            SetupBuildScenes();
-
-            if (!TryGetArgumentValue(BuildNameArgument, out var buildName))
-            {
-                buildName = "Windows-Client";
-            }
-
-            Build(BuildTarget.StandaloneWindows64, buildName: buildName, defaultBuildPath: DefaultBuildPath + "Windows-Client/");
-        }
-
-        [MenuItem("Build/Client/Windows London")]
-        public static void BuildWindowsLondonClient()
-        {
-            Debug.Log("Building Windows London Client...");
-
-            LoadAndSetConnectionConfig("London");
-            SetupBuildScenes();
-
-            if (!TryGetArgumentValue(BuildNameArgument, out var buildName))
-            {
-                buildName = "Windows-Client";
-            }
-
-            Build(BuildTarget.StandaloneWindows64, buildName: buildName, defaultBuildPath: DefaultBuildPath + "Windows-Client/");
-        }
-
-        [MenuItem("Build/Client/Windows SinglePlayer")]
-        public static void BuildWindowsSinglePlayerClient()
-        {
-            Debug.Log("Building Windows SinglePlayer Client...");
-
-            LoadAndSetConnectionConfig("SinglePlayer");
-            SetupBuildScenes();
-
-            if (!TryGetArgumentValue(BuildNameArgument, out var buildName))
-            {
-                buildName = "Windows-Client-SinglePlayer";
-            }
-
-            Build(BuildTarget.StandaloneWindows64, buildName: buildName, defaultBuildPath: DefaultBuildPath + "Windows-Client-SinglePlayer/");
-        }
-
-        #endregion
-
-        #region Helper Methods
-
-        private static void LoadAndSetConnectionConfig(string configName)
-        {
-            // Find BootstrapScene
-            if (!File.Exists(BootstrapScenePath))
-            {
-                Debug.LogError($"BootstrapScene not found at: {BootstrapScenePath}");
-                EditorApplication.Exit(1);
-                return;
-            }
-            
-            // Check if we need to save current scene
-            if (EditorSceneManager.GetActiveScene().isDirty)
-            {
-                bool saveCurrentScene = EditorUtility.DisplayDialog(
-                    "Save Current Scene?",
-                    "The current scene has unsaved changes. Do you want to save before switching configs?",
-                    "Save",
-                    "Don't Save");
-
-                if (saveCurrentScene)
+                var config = AssetDatabase.LoadAssetAtPath<BuildConfiguration>(configPath);
+                if (config != null)
                 {
-                    EditorSceneManager.SaveOpenScenes();
-                }
-            }
-
-            var scene = EditorSceneManager.OpenScene(BootstrapScenePath, OpenSceneMode.Single);
-
-            // Find GameScopeWithAdditionalScenes component
-            var rootObjects = scene.GetRootGameObjects();
-            GameScopeWithAdditionalScenes gameScope = null;
-
-            foreach (var rootObject in rootObjects)
-            {
-                gameScope = rootObject.GetComponent<GameScopeWithAdditionalScenes>();
-                if (gameScope != null) break;
-            }
-
-            if (gameScope == null)
-            {
-                Debug.LogError("GameScopeWithAdditionalScenes not found in BootstrapScene");
-                EditorApplication.Exit(1);
-                return;
-            }
-            
-            // Load config from Resources
-            var config = Resources.Load<ConnectionConfig>($"Configs/Connection/{configName}");
-            if (config == null)
-            {
-                Debug.LogError($"Connection config '{configName}' not found in Resources/Configs/Connection/");
-                EditorApplication.Exit(1);
-                return;
-            }
-
-            Debug.Log($"Loaded connection config: {configName}");
-
-            // Set the connection config using SerializedObject for proper serialization
-            var so = new SerializedObject(gameScope);
-            so.FindProperty("_connectionConfig").objectReferenceValue = config;
-            so.ApplyModifiedProperties();
-
-            // Save scene
-            EditorSceneManager.SaveScene(scene);
-
-            Debug.Log($"Connection config set to: {configName}");
-        }
-
-        private static void SetupBuildScenes()
-        {
-            // Open BootstrapScene to get GameScope configuration
-            if (!File.Exists(BootstrapScenePath))
-            {
-                Debug.LogError($"BootstrapScene not found at: {BootstrapScenePath}");
-                EditorApplication.Exit(1);
-                return;
-            }
-
-            var scene = EditorSceneManager.OpenScene(BootstrapScenePath, OpenSceneMode.Single);
-
-            // Find GameScopeWithAdditionalScenes component
-            var rootObjects = scene.GetRootGameObjects();
-            GameScopeWithAdditionalScenes gameScope = null;
-
-            foreach (var rootObject in rootObjects)
-            {
-                gameScope = rootObject.GetComponent<GameScopeWithAdditionalScenes>();
-                if (gameScope != null) break;
-            }
-
-            if (gameScope == null)
-            {
-                Debug.LogError("GameScopeWithAdditionalScenes not found in BootstrapScene");
-                EditorApplication.Exit(1);
-                return;
-            }
-
-            // Collect all scenes from GameScope and ConnectionConfig
-            var allScenes = new HashSet<string>();
-
-            // Get scenes from GameScope's _sceneNames
-            var so = new SerializedObject(gameScope);
-            var sceneNamesProperty = so.FindProperty("_sceneNames");
-            if (sceneNamesProperty != null && sceneNamesProperty.isArray)
-            {
-                for (int i = 0; i < sceneNamesProperty.arraySize; i++)
-                {
-                    var sceneName = sceneNamesProperty.GetArrayElementAtIndex(i).stringValue;
-                    if (!string.IsNullOrEmpty(sceneName))
-                    {
-                        allScenes.Add(sceneName);
-                    }
-                }
-            }
-
-            // Get scenes from ConnectionConfig's SceneNames
-            var connectionConfigProperty = so.FindProperty("_connectionConfig");
-            if (connectionConfigProperty != null && connectionConfigProperty.objectReferenceValue != null)
-            {
-                var config = connectionConfigProperty.objectReferenceValue as ConnectionConfig;
-                if (config != null && config.SceneNames != null)
-                {
-                    foreach (var sceneName in config.SceneNames)
-                    {
-                        if (!string.IsNullOrEmpty(sceneName))
-                        {
-                            allScenes.Add(sceneName);
-                        }
-                    }
-                }
-            }
-
-            // Build the scene list for EditorBuildSettings
-            var sceneList = new List<EditorBuildSettingsScene>();
-
-            // Always include BootstrapScene first
-            sceneList.Add(new EditorBuildSettingsScene(BootstrapScenePath, true));
-
-            // Add all collected scenes (they will be loaded additively at runtime)
-            foreach (var sceneName in allScenes)
-            {
-                // Find scene path by name
-                var scenePath = FindScenePath(sceneName);
-                if (!string.IsNullOrEmpty(scenePath))
-                {
-                    sceneList.Add(new EditorBuildSettingsScene(scenePath, true));
+                    BuildFromConfig(config);
                 }
                 else
                 {
-                    Debug.LogWarning($"Scene '{sceneName}' not found in project. Skipping.");
+                    Debug.LogError($"BuildConfiguration not found at path: {configPath}");
+                    EditorApplication.Exit(1);
+                }
+            }
+            else
+            {
+                Debug.LogError($"Missing argument {BuildConfigArgument}");
+                EditorApplication.Exit(1);
+            }
+        }
+
+        private static void BuildFromConfig(BuildConfiguration config)
+        {
+            Debug.Log($"Building from config: {config.name}");
+
+            // 1. Setup Scene (ConnectionConfig & internal SceneNames)
+            SetupBuildEnvironment(config);
+
+            // 2. Prepare Build Settings
+            var buildPlayerOptions = new BuildPlayerOptions();
+            
+            // Collect scenes: Bootstrap + Config Scenes + Extra Build Scenes
+            var scenes = new List<string>
+            {
+                Utils.BootstrapScenePath
+            };
+
+            // Add scenes from GameScope logic (if valid)
+            if (config.SceneNames != null)
+            {
+                foreach (var sceneName in config.SceneNames)
+                {
+                     var path = FindScenePath(sceneName);
+                     if (!string.IsNullOrEmpty(path))
+                         scenes.Add(path);
+                }
+            }
+            
+            // Add scenes from ConnectionConfig logic
+            if (config.ConnectionConfig != null && config.ConnectionConfig.SceneNames != null)
+            {
+                foreach (var sceneName in config.ConnectionConfig.SceneNames)
+                {
+                    var path = FindScenePath(sceneName);
+                    if (!string.IsNullOrEmpty(path) && !scenes.Contains(path))
+                        scenes.Add(path);
                 }
             }
 
-            EditorBuildSettings.scenes = sceneList.ToArray();
-            Debug.Log($"Build scenes configured ({sceneList.Count} scenes): {string.Join(", ", sceneList.Select(s => Path.GetFileNameWithoutExtension(s.path)))}");
+            // Add extra build scenes
+            if (config.ExtraBuildScenes != null)
+            {
+                foreach (var sceneName in config.ExtraBuildScenes)
+                {
+                    var path = FindScenePath(sceneName);
+                    if (!string.IsNullOrEmpty(path) && !scenes.Contains(path))
+                        scenes.Add(path);
+                }
+            }
+
+            buildPlayerOptions.scenes = scenes.ToArray();
+            buildPlayerOptions.target = config.BuildTarget;
+            buildPlayerOptions.subtarget = (int)config.BuildSubtarget;
+
+            var buildPath = Path.Combine(DefaultBuildPath, config.BuildFolderName);
+            if (!Directory.Exists(buildPath))
+                Directory.CreateDirectory(buildPath);
+            
+            buildPlayerOptions.locationPathName = Path.Combine(buildPath, config.BuildFileName);
+            
+            var options = BuildOptions.CleanBuildCache;
+            if (config.DevelopmentBuild)
+                options |= BuildOptions.Development;
+            
+            buildPlayerOptions.options = options;
+
+            // 3. Apply Defines
+            var buildTargetGroup = BuildPipeline.GetBuildTargetGroup(config.BuildTarget);
+            var originalDefines = PlayerSettings.GetScriptingDefineSymbolsForGroup(buildTargetGroup);
+            var newDefines = originalDefines;
+            Debug.Log($"Got existing defines: {originalDefines}");
+            
+            if (config.ExtraDefines != null)
+            {
+                foreach (var define in config.ExtraDefines)
+                {
+                    if (!newDefines.Contains(define))
+                        newDefines += ";" + define;
+                }
+                PlayerSettings.SetScriptingDefineSymbolsForGroup(buildTargetGroup, newDefines);
+            }
+            
+            Debug.Log($"Result defines: {originalDefines}");
+            
+            // 4. Build
+            Debug.Log($"Building to: {buildPlayerOptions.locationPathName}");
+            var report = BuildPipeline.BuildPlayer(buildPlayerOptions);
+            
+            // Restore defines
+            PlayerSettings.SetScriptingDefineSymbolsForGroup(buildTargetGroup, originalDefines);
+
+            if (report.summary.result != BuildResult.Succeeded)
+            {
+                Debug.LogError($"Build failed: {report.summary.result}");
+                if (Application.isBatchMode)
+                    EditorApplication.Exit(1);
+            }
+            else
+            {
+                Debug.Log("Build succeeded");
+                if (Application.isBatchMode)
+                    EditorApplication.Exit(0);
+            }
+        }
+
+        private static void SetupBuildEnvironment(BuildConfiguration config)
+        {
+            if (!Utils.VerifyBootrstapSceneExists())
+                return;
+            
+            Utils.SaveCurrentSceneIfDirty();
+            
+            if (!Utils.TryLoadBootstrapSceneAndGetScope(out var scene, out var gameScope))
+                return;
+
+            var so = new SerializedObject(gameScope);
+            
+            Utils.ApplyConnectionConfigToGameScope(config.ConnectionConfig, so);
+            Utils.ApplySceneNamesToGameScope(config, so);
+
+            so.ApplyModifiedProperties();
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
         }
 
         private static string FindScenePath(string sceneName)
         {
-            // Search for scene in Assets folder
             var guids = AssetDatabase.FindAssets($"{sceneName} t:Scene");
             foreach (var guid in guids)
             {
                 var path = AssetDatabase.GUIDToAssetPath(guid);
-                var fileName = Path.GetFileNameWithoutExtension(path);
-                if (fileName == sceneName)
-                {
+                if (Path.GetFileNameWithoutExtension(path) == sceneName)
                     return path;
-                }
             }
-
             return null;
-        }
-
-        private static void Build(BuildTarget target, int subtarget = 0, string buildName = "", string defaultBuildPath = null)
-        {
-            if (!TryGetArgumentValue(BuildPathArgument, out string buildPath))
-            {
-                if (string.IsNullOrEmpty(defaultBuildPath))
-                {
-                    Debug.LogError("Build path not specified");
-                    EditorApplication.Exit(1);
-                    return;
-                }
-
-                buildPath = defaultBuildPath;
-            }
-
-            Debug.Log($"Build path: {buildPath}");
-            if (Directory.Exists(buildPath))
-            {
-                Debug.Log("Deleting old build...");
-                Directory.Delete(buildPath, true);
-            }
-
-            var buildOptions = BuildOptions.CleanBuildCache;
-            if (HasArgument(BuildDevelopmentArgument))
-                buildOptions |= BuildOptions.Development;
-
-            string resultPath = Path.Combine(buildPath, buildName);
-            var options = new BuildPlayerOptions
-            {
-                scenes = GetBuildScenes(),
-                locationPathName = resultPath,
-                target = target,
-                subtarget = subtarget,
-                options = buildOptions,
-            };
-
-            Debug.Log($"Executing build at {resultPath}");
-            var report = BuildPipeline.BuildPlayer(options);
-            if (report.summary.result != BuildResult.Succeeded)
-            {
-                Debug.LogError($"Build failed: {report.summary.result}");
-                EditorApplication.Exit(1);
-                return;
-            }
-
-            Debug.Log("Build succeeded");
-            EditorApplication.Exit(0);
-        }
-
-        private static string[] GetBuildScenes()
-        {
-            var scenes = new string[SceneManager.sceneCountInBuildSettings];
-            for (var i = 0; i < scenes.Length; i++)
-            {
-                scenes[i] = SceneUtility.GetScenePathByBuildIndex(i);
-            }
-
-            return scenes;
         }
 
         private static bool TryGetArgumentValue(string argumentName, out string value)
         {
-            Debug.Log($"Searching for argument: {argumentName}");
             string[] args = Environment.GetCommandLineArgs();
             for (int i = 0; i < args.Length; i++)
             {
                 if (string.Equals(args[i], argumentName) && i + 1 < args.Length)
                 {
                     value = args[i + 1];
-                    Debug.Log($"Found argument {argumentName} value: {value}");
                     return true;
                 }
             }
-
-            Debug.Log($"Argument {argumentName} not found");
             value = null;
             return false;
         }
-
-        private static bool HasArgument(string argumentName)
-        {
-            Debug.Log($"Searching for argument: {argumentName}");
-            string[] args = Environment.GetCommandLineArgs();
-            foreach (var argument in args)
-            {
-                if (string.Equals(argument, argumentName))
-                {
-                    Debug.Log($"Found argument {argumentName}");
-                    return true;
-                }
-            }
-
-            Debug.Log($"Argument {argumentName} not found");
-            return false;
-        }
-
-        #endregion
     }
 }
