@@ -49,11 +49,12 @@ namespace SkillcadeSDK.WebRequests
                 Debug.LogError("[WebRequester] Winner id are empty");
                 return;
             }
-
-            Debug.Log("[WebRequester] Create http client");
+            
+            string url = GetRequestUrl(winnerId);
+            Debug.Log($"[WebRequester] Create http client to {url}");
             var httpClient = new HttpClient
             {
-                BaseAddress = new Uri(BaseUri),
+                BaseAddress = new Uri(url),
                 DefaultRequestHeaders = { { TokenHeaderKey, _serverPayloadController.Payload.ServerAuthToken } }
             };
 
@@ -70,7 +71,7 @@ namespace SkillcadeSDK.WebRequests
             {
                 using var jsonContent = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, MediaTypeJson);
                 Debug.Log("[WebRequester] Send request");
-                using var response = await httpClient.PostAsync($"api/playing-game/{matchId}/choose-winner", jsonContent);
+                using var response = await httpClient.PostAsync("", jsonContent);
 
                 Debug.Log($"[WebRequester] choose winner response status: {response.StatusCode} - {response.ReasonPhrase}");
                 response.EnsureSuccessStatusCode();
@@ -82,6 +83,18 @@ namespace SkillcadeSDK.WebRequests
             {
                 Debug.LogError($"[WebRequester] Error sending winner {e}");
             }
+        }
+
+        private string GetRequestUrl(string matchId)
+        {
+            if (_serverPayloadController.Payload != null && !string.IsNullOrEmpty(_serverPayloadController.Payload.ChooseWinnerUrl))
+            {
+                Debug.Log($"[WebRequester] Got choose winner url from payload: {_serverPayloadController.Payload.ChooseWinnerUrl}");
+                return _serverPayloadController.Payload.ChooseWinnerUrl;
+            }
+
+            Debug.Log("[WebRequester] Combine choose winner url as cached");
+            return BaseUri + $"/api/playing-game/{matchId}/choose-winner";
         }
     }
 #endif

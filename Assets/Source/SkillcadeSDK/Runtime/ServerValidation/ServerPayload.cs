@@ -12,6 +12,9 @@ namespace SkillcadeSDK.ServerValidation
         
         [ServerPayloadVariable("BACKEND_AUTH_TOKEN")]
         public string ServerAuthToken;
+
+        [ServerPayloadVariable("CHOOSE_WINNER_URL")]
+        public string ChooseWinnerUrl;
         
         [ServerPayloadVariable("SESSION_PUBLIC_KEY")]
         public string SessionPublicKey;
