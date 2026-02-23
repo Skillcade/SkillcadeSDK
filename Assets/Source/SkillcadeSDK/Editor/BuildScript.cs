@@ -13,7 +13,7 @@ namespace SkillcadeSDK.Editor
         private const string BuildConfigArgument = "-buildConfig";
         private const string DefaultBuildPath = "Builds/";
 
-        [MenuItem("Build/Build From Selected Config", isValidateFunction: false)]
+        [MenuItem("Assets/Build Configuration/Build From Selected Config", isValidateFunction: false)]
         public static void BuildFromSelectedConfig()
         {
             var selectedObject = Selection.activeObject;
@@ -28,7 +28,7 @@ namespace SkillcadeSDK.Editor
             }
         }
         
-        [MenuItem("Build/Build From Selected Config", isValidateFunction: true)]
+        [MenuItem("Assets/Build Configuration/Build From Selected Config", isValidateFunction: true)]
         public static bool BuildFromSelectedConfigValidation()
         {
             return Selection.activeObject is BuildConfiguration;
