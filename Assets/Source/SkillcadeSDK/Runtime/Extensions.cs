@@ -1,4 +1,6 @@
-﻿using SkillcadeSDK.Connection;
+﻿using System;
+using System.Threading.Tasks;
+using SkillcadeSDK.Connection;
 using SkillcadeSDK.DI;
 using UnityEngine;
 using UnityEngine.Pool;
@@ -100,6 +102,27 @@ namespace SkillcadeSDK
             int days = hours / 24;
             hours %= 24;
             return $"{days}d {hours}h {minutes}m {seconds}s";
+        }
+
+        // ReSharper disable once AsyncVoidMethod
+        public static async void DoNotAwait(this Task task)
+        {
+            await AwaitAsync(task);
+        }
+
+        private static async Task AwaitAsync(Task task)
+        {
+            try
+            {
+                await task;
+            }
+            catch (Exception e)
+            {
+                if (e is not OperationCanceledException)
+                {
+                    Debug.LogError($"Error when executing task: {e}");
+                }
+            }
         }
     }
 }

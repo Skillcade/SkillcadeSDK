@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
+using SkillcadeSDK.Connection;
 using SkillcadeSDK.Replays.Components;
 using SkillcadeSDK.Replays.Events;
 using UnityEngine;
@@ -31,6 +32,7 @@ namespace SkillcadeSDK.Replays
         public event Action<int, byte[]> OnFrameReady;
 
         [Inject] private readonly GameVersionConfig _gameVersionConfig;
+        [Inject] private readonly IConnectionController _connectionController;
 
 #if UNITY_SERVER || UNITY_EDITOR
         [Inject] private readonly ServerPayloadController _serverPayloadController;
@@ -87,6 +89,9 @@ namespace SkillcadeSDK.Replays
 
         public void StartWrite()
         {
+            if (_connectionController.ConnectionState == ConnectionState.SinglePlayer)
+                return;
+            
             _active = true;
             _startTime = DateTime.UtcNow;
             _replayDataForClients.Clear();
@@ -97,7 +102,7 @@ namespace SkillcadeSDK.Replays
         {
             _active = false;
             
-            if (asServer)
+            if (asServer && _connectionController.ConnectionState != ConnectionState.SinglePlayer)
             {
                 var filePath = Path.Combine(Application.streamingAssetsPath, FileName);
                 using var stream = new FileStream(filePath, FileMode.Create);
