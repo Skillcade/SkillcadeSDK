@@ -7,6 +7,7 @@
         public ushort WssConnectPort;
         public string WssServerName;
         public bool UseEncryption;
+        public bool SkillcadeHubIntegrated;
 
         public float ReconnectDelay;
         public int ReconnectAttempts;

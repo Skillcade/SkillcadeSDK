@@ -34,6 +34,7 @@ namespace SkillcadeSDK.Connection
                 ReconnectDelay = ReconnectDelay,
                 ReconnectAttempts = ReconnectAttempts,
                 TargetPlayerCount = TargetPlayerCount,
+                SkillcadeHubIntegrated = SkillcadeHubIntegrated,
             };
         }
     }
