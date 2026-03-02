@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if UNITY_SERVER || UNITY_EDITOR
+using System;
 using Newtonsoft.Json;
 using UnityEngine;
 
@@ -21,3 +22,4 @@ namespace SkillcadeSDK.ServerValidation
         }
     }
 }
+#endif
