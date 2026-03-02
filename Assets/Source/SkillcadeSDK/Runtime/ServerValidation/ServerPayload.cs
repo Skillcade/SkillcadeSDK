@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 
 namespace SkillcadeSDK.ServerValidation
 {
@@ -26,8 +25,8 @@ namespace SkillcadeSDK.ServerValidation
         [ServerPayloadVariable("SESSION_EXPIRES_AT", typeof(DateTimeVariableReader))]
         public DateTime SessionExpiresAt;
         
-        [ServerPayloadVariable("CHARACTER_BY_PLAYER_IDS", typeof(JsonVariableReader<Dictionary<string, string>>))]
-        public Dictionary<string, string> CharacterByPlayerIds;
+        [ServerPayloadVariable("CHARACTER_BY_PLAYER_IDS", typeof(JsonVariableReader<PlayerCharacterContainer[]>))]
+        public PlayerCharacterContainer[] CharacterByPlayerIds;
 
         [JsonIgnore]
         public byte[] PublicKeyBytes;
