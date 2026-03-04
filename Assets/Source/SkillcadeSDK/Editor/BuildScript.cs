@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
@@ -127,15 +128,23 @@ namespace SkillcadeSDK.Editor
             var buildTargetGroup = BuildPipeline.GetBuildTargetGroup(config.BuildTarget);
             var namedBuildTarget = NamedBuildTarget.FromBuildTargetGroup(buildTargetGroup);
             var originalDefines = PlayerSettings.GetScriptingDefineSymbols(namedBuildTarget);
-            var newDefines = originalDefines;
-            Debug.Log($"Got existing defines: {originalDefines}");
+            var newDefinesList = originalDefines.Split(';').ToList();
             
             if (config.UseSkillcadeDebug)
             {
-                // PlayerSettings.SetScriptingDefineSymbols(namedBuildTarget, newDefines);
+                if (!newDefinesList.Contains(SkillcadeDebugDefine))
+                    newDefinesList.Add(SkillcadeDebugDefine);
             }
+            else
+            {
+                if (newDefinesList.Contains(SkillcadeDebugDefine))
+                    newDefinesList.Remove(SkillcadeDebugDefine);
+            }
+
+            var newDefines = string.Join(';', newDefinesList);
+            PlayerSettings.SetScriptingDefineSymbols(namedBuildTarget, newDefines);
             
-            Debug.Log($"Result defines: {originalDefines}");
+            Debug.Log($"Result defines: {newDefines}");
             
             // 4. Build
             Debug.Log($"Building to: {buildPlayerOptions.locationPathName}");
