@@ -14,7 +14,6 @@ namespace SkillcadeSDK.Connection
 
         [Header("Reconnect")]
         [SerializeField] public float ReconnectDelay;
-        [SerializeField] public int ReconnectAttempts;
 
         [Header("Game")]
         [SerializeField] public int TargetPlayerCount;
@@ -32,7 +31,6 @@ namespace SkillcadeSDK.Connection
                 WssConnectPort = WssConnectPort,
                 UseEncryption = UseEncryption,
                 ReconnectDelay = ReconnectDelay,
-                ReconnectAttempts = ReconnectAttempts,
                 TargetPlayerCount = TargetPlayerCount,
                 SkillcadeHubIntegrated = SkillcadeHubIntegrated,
             };

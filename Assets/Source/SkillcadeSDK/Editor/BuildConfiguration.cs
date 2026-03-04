@@ -30,8 +30,8 @@ namespace SkillcadeSDK.Editor
         [Tooltip("Additional scenes to include in the build but not load automatically.")]
         public string[] ExtraBuildScenes;
 
-        [Tooltip("Extra scripting define symbols to add for this build.")]
-        public string[] ExtraDefines;
+        [Tooltip("Add SKILLCADE_DEBUG to scripting defines")]
+        public bool UseSkillcadeDebug;
         
         [Tooltip("If true, the build will be a development build.")]
         public bool DevelopmentBuild;

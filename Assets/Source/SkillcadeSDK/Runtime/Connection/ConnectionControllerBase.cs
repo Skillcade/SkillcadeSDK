@@ -14,10 +14,8 @@ namespace SkillcadeSDK.Connection
         public ConnectionData ActiveConfig { get; private set; }
         public abstract ITransportAdapter Transport { get; }
 
-        private int _reconnectAttempts;
         private Coroutine _reconnectCoroutine;
         private WaitForSeconds _reconnectWait;
-        private bool _isInitialConnection;
 
         // Which start request was received
         private bool _isStartedAsServer;
@@ -68,10 +66,9 @@ namespace SkillcadeSDK.Connection
             }
             
             ActiveConfig = config;
-            _isInitialConnection = true;
 
             _isStartedAsClient = true;
-            Debug.Log($"[ConnectionControllerBase] Starting client to {config.ServerAddress}:{config.ServerListenPort} (initial={_isInitialConnection})");
+            Debug.Log($"[ConnectionControllerBase] Starting client to {config.ServerAddress}:{config.ServerListenPort}");
             SetState(ConnectionState.Connecting);
             Transport.StartClient(config);
             Debug.Log("[ConnectionControllerBase] Transport.StartClient called");
@@ -106,7 +103,7 @@ namespace SkillcadeSDK.Connection
                 return;
             }
 
-            Debug.Log($"[ConnectionControllerBase] Disconnect requested (state={ConnectionState}, isInitial={_isInitialConnection}, reconnectAttempts={_reconnectAttempts})");
+            Debug.Log($"[ConnectionControllerBase] Disconnect requested (state={ConnectionState})");
 
             StopReconnect();
 
@@ -136,9 +133,7 @@ namespace SkillcadeSDK.Connection
             }
             else if (Transport.IsClient)
             {
-                Debug.Log($"[ConnectionControllerBase] Client connected successfully (wasInitial={_isInitialConnection}, reconnectAttempts={_reconnectAttempts})");
-                _isInitialConnection = false;
-                _reconnectAttempts = 0;
+                Debug.Log($"[ConnectionControllerBase] Client connected successfully");
                 if (ConnectionState != ConnectionState.SinglePlayer)
                     SetState(ConnectionState.Connected);
             }
@@ -146,7 +141,7 @@ namespace SkillcadeSDK.Connection
 
         private void OnTransportDisconnected(DisconnectionReason reason)
         {
-            Debug.Log($"[ConnectionControllerBase] OnTransportDisconnected (reason={reason}, IsServer={Transport.IsServer}, IsClient={Transport.IsClient}, state={ConnectionState}, isInitial={_isInitialConnection})");
+            Debug.Log($"[ConnectionControllerBase] OnTransportDisconnected (reason={reason}, IsServer={Transport.IsServer}, IsClient={Transport.IsClient}, state={ConnectionState})");
 
             if (_isStartedAsServer)
             {
@@ -158,31 +153,13 @@ namespace SkillcadeSDK.Connection
                 Debug.Log($"[ConnectionControllerBase] Client disconnected: reason={reason}");
                 OnDisconnected?.Invoke(reason);
                 SetState(ConnectionState.Disconnected);
-
-                var shouldReconnect = ShouldReconnect(reason);
-                Debug.Log($"[ConnectionControllerBase] ShouldReconnect={shouldReconnect} (reason={reason}, isInitial={_isInitialConnection}, hasConfig={ActiveConfig != null})");
-
-                if (shouldReconnect)
-                    StartReconnect();
-                else
-                    Debug.Log("[ConnectionControllerBase] Not reconnecting");
+                StartReconnect();
             }
-        }
-
-        private bool ShouldReconnect(DisconnectionReason reason)
-        {
-            if (ActiveConfig == null || !Transport.IsClient)
-                return false;
-
-            if (_isInitialConnection)
-                return true;
-
-            return reason is DisconnectionReason.ConnectionLost or DisconnectionReason.Timeout;
         }
 
         private void StartReconnect()
         {
-            Debug.Log($"[ConnectionControllerBase] StartReconnect (isInitial={_isInitialConnection}, attempts={_reconnectAttempts}/{ActiveConfig.ReconnectAttempts}, coroutineActive={_reconnectCoroutine != null})");
+            Debug.Log($"[ConnectionControllerBase] StartReconnect (coroutineActive={_reconnectCoroutine != null})");
 
             if (_reconnectCoroutine != null)
             {
@@ -190,40 +167,30 @@ namespace SkillcadeSDK.Connection
                 return;
             }
 
-            if (!_isInitialConnection && _reconnectAttempts >= ActiveConfig.ReconnectAttempts)
-            {
-                Debug.Log($"[ConnectionControllerBase] Reconnect attempts exhausted ({_reconnectAttempts}/{ActiveConfig.ReconnectAttempts}), giving up");
-                return;
-            }
-
-            Debug.Log($"[ConnectionControllerBase] Starting reconnect coroutine (mode={(_isInitialConnection ? "initial-endless" : "reconnect-limited")}, delay={ActiveConfig.ReconnectDelay}s)");
+            Debug.Log($"[ConnectionControllerBase] Starting reconnect coroutine (delay={ActiveConfig.ReconnectDelay}s)");
             _reconnectCoroutine = StartCoroutine(Reconnect());
         }
 
         private void StopReconnect()
         {
-            Debug.Log($"[ConnectionControllerBase] StopReconnect (coroutineActive={_reconnectCoroutine != null}, isInitial={_isInitialConnection}, attempts={_reconnectAttempts})");
+            Debug.Log($"[ConnectionControllerBase] StopReconnect (coroutineActive={_reconnectCoroutine != null})");
 
             if (_reconnectCoroutine != null)
             {
                 StopCoroutine(_reconnectCoroutine);
                 _reconnectCoroutine = null;
             }
-
-            _isInitialConnection = false;
-            _reconnectAttempts = 0;
         }
 
         private IEnumerator Reconnect()
         {
-            Debug.Log($"[ConnectionControllerBase] Reconnect coroutine started (isInitial={_isInitialConnection}, delay={ActiveConfig.ReconnectDelay}s)");
+            Debug.Log($"[ConnectionControllerBase] Reconnect coroutine started (delay={ActiveConfig.ReconnectDelay}s)");
 
-            while (_isInitialConnection || _reconnectAttempts < ActiveConfig.ReconnectAttempts)
+            int attempt = 0;
+            while (true)
             {
-                _reconnectAttempts++;
-                Debug.Log(_isInitialConnection
-                    ? $"[ConnectionControllerBase] Initial connect attempt {_reconnectAttempts} (waiting {ActiveConfig.ReconnectDelay}s)"
-                    : $"[ConnectionControllerBase] Reconnect attempt {_reconnectAttempts}/{ActiveConfig.ReconnectAttempts} (waiting {ActiveConfig.ReconnectDelay}s)");
+                attempt++;
+                Debug.Log($"[ConnectionControllerBase] Reconnect attempt {attempt} (waiting {ActiveConfig.ReconnectDelay}s)");
 
                 _reconnectWait ??= new WaitForSeconds(ActiveConfig.ReconnectDelay);
                 yield return _reconnectWait;
@@ -245,7 +212,7 @@ namespace SkillcadeSDK.Connection
             }
 
             if (ConnectionState != ConnectionState.Connected)
-                Debug.Log($"[ConnectionControllerBase] Reconnect loop ended without success (state={ConnectionState}, attempts={_reconnectAttempts})");
+                Debug.Log($"[ConnectionControllerBase] Reconnect loop ended without success (state={ConnectionState})");
 
             _reconnectCoroutine = null;
         }

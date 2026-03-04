@@ -65,20 +65,5 @@ namespace SkillcadeSDK.Editor
                 Debug.LogWarning("BuildConfiguration has no ConnectionConfig assigned.");
             }
         }
-
-        public static void ApplySceneNamesToGameScope(BuildConfiguration config, SerializedObject so)
-        {
-            var sceneNamesProp = so.FindProperty("_sceneNames");
-            sceneNamesProp.ClearArray();
-            if (config.SceneNames == null)
-                return;
-            
-            sceneNamesProp.arraySize = config.SceneNames.Length;
-            for (int i = 0; i < config.SceneNames.Length; i++)
-            {
-                sceneNamesProp.GetArrayElementAtIndex(i).stringValue = config.SceneNames[i];
-            }
-            Debug.Log($"Applied {config.SceneNames.Length} scene names.");
-        }
     }
 }

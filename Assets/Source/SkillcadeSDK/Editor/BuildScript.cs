@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -12,6 +13,7 @@ namespace SkillcadeSDK.Editor
     {
         private const string BuildConfigArgument = "-buildConfig";
         private const string DefaultBuildPath = "Builds/";
+        private const string SkillcadeDebugDefine = "SKILLCADE_DEBUG;";
 
         [MenuItem("Assets/Build Configuration/Build From Selected Config", isValidateFunction: false)]
         public static void BuildFromSelectedConfig()
@@ -123,18 +125,14 @@ namespace SkillcadeSDK.Editor
 
             // 3. Apply Defines
             var buildTargetGroup = BuildPipeline.GetBuildTargetGroup(config.BuildTarget);
-            var originalDefines = PlayerSettings.GetScriptingDefineSymbolsForGroup(buildTargetGroup);
+            var namedBuildTarget = NamedBuildTarget.FromBuildTargetGroup(buildTargetGroup);
+            var originalDefines = PlayerSettings.GetScriptingDefineSymbols(namedBuildTarget);
             var newDefines = originalDefines;
             Debug.Log($"Got existing defines: {originalDefines}");
             
-            if (config.ExtraDefines != null)
+            if (config.UseSkillcadeDebug)
             {
-                foreach (var define in config.ExtraDefines)
-                {
-                    if (!newDefines.Contains(define))
-                        newDefines += ";" + define;
-                }
-                PlayerSettings.SetScriptingDefineSymbolsForGroup(buildTargetGroup, newDefines);
+                // PlayerSettings.SetScriptingDefineSymbols(namedBuildTarget, newDefines);
             }
             
             Debug.Log($"Result defines: {originalDefines}");
@@ -144,7 +142,7 @@ namespace SkillcadeSDK.Editor
             var report = BuildPipeline.BuildPlayer(buildPlayerOptions);
             
             // Restore defines
-            PlayerSettings.SetScriptingDefineSymbolsForGroup(buildTargetGroup, originalDefines);
+            PlayerSettings.SetScriptingDefineSymbols(namedBuildTarget, originalDefines);
 
             if (report.summary.result != BuildResult.Succeeded)
             {
@@ -173,7 +171,6 @@ namespace SkillcadeSDK.Editor
             var so = new SerializedObject(gameScope);
             
             Utils.ApplyConnectionConfigToGameScope(config.ConnectionConfig, so);
-            Utils.ApplySceneNamesToGameScope(config, so);
 
             so.ApplyModifiedProperties();
             EditorSceneManager.MarkSceneDirty(scene);

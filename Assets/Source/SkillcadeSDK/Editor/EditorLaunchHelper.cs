@@ -38,7 +38,6 @@ namespace SkillcadeSDK.Editor
             var so = new SerializedObject(gameScope);
             
             Utils.ApplyConnectionConfigToGameScope(config.ConnectionConfig, so);
-            Utils.ApplySceneNamesToGameScope(config, so);
 
             so.ApplyModifiedProperties();
             

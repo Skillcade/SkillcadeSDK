@@ -54,7 +54,7 @@ namespace SkillcadeSDK.Common
             else if (_connectionMode == ConnectionMode.Client)
             {
                 if (_connectionConfig.SkillcadeHubIntegrated)
-                    WaitForPayloadAndConnect(destroyCancellationToken);
+                    WaitForPayloadAndConnect(destroyCancellationToken).DoNotAwait();
                 else
                     StartCoroutine(WaitAndStart(_connectionMode));
             }

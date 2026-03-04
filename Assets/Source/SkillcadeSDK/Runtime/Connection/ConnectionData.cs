@@ -10,7 +10,6 @@
         public bool SkillcadeHubIntegrated;
 
         public float ReconnectDelay;
-        public int ReconnectAttempts;
         
         public int TargetPlayerCount;
     }
