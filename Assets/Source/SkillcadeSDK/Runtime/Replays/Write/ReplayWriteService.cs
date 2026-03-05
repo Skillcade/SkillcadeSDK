@@ -30,6 +30,13 @@ namespace SkillcadeSDK.Replays
         private const string FileName = "replay.replay";
 
         public event Action<int, byte[]> OnFrameReady;
+        public event Action OnWriteStarted;
+        public event Action<bool> OnWriteFinished;
+        public event Action<ReplayObjectHandler> OnObjectRegistered;
+        public event Action<ReplayObjectHandler> OnObjectUnregistered;
+
+        public IReadOnlyList<ReplayObjectHandler> ActiveObjects => _activeObjects;
+        public bool IsActive => _active;
 
         [Inject] private readonly GameVersionConfig _gameVersionConfig;
         [Inject] private readonly IConnectionController _connectionController;
@@ -63,6 +70,7 @@ namespace SkillcadeSDK.Replays
             // Debug.Log($"[ReplayWriteService] Register object {handler.ObjectId} with prefab {handler.PrefabId}");
             _activeObjects.Add(handler);
             AddEvent(new ObjectCreatedEvent(handler.ObjectId, handler.PrefabId, handler.transform.position));
+            OnObjectRegistered?.Invoke(handler);
         }
 
         public void UnregisterObjectHandler(ReplayObjectHandler handler)
@@ -70,6 +78,7 @@ namespace SkillcadeSDK.Replays
             // Debug.Log($"[ReplayWriteService] Unregister object {handler.ObjectId} with prefab {handler.PrefabId}");
             _activeObjects.Remove(handler);
             AddEvent(new ObjectDestroyedEvent(handler.ObjectId, handler.PrefabId, handler.transform.position));
+            OnObjectUnregistered?.Invoke(handler);
         }
 
         public void AddFrameFromClient(int clientId, int frameId, byte[] frameData)
@@ -96,10 +105,12 @@ namespace SkillcadeSDK.Replays
             _startTime = DateTime.UtcNow;
             _replayDataForClients.Clear();
             _localFrameData.Clear();
+            OnWriteStarted?.Invoke();
         }
 
         public void FinishWrite(bool asServer)
         {
+            OnWriteFinished?.Invoke(asServer);
             _active = false;
             
             if (asServer && _connectionController.ConnectionState != ConnectionState.SinglePlayer)
