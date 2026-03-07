@@ -32,6 +32,7 @@ namespace SkillcadeSDK.Replays
         public event Action<int, byte[]> OnFrameReady;
         public event Action OnWriteStarted;
         public event Action<bool> OnWriteFinished;
+        public event Action<ReplayEvent> OnEventAdded;
         public event Action<ReplayObjectHandler> OnObjectRegistered;
         public event Action<ReplayObjectHandler> OnObjectUnregistered;
 
@@ -63,6 +64,7 @@ namespace SkillcadeSDK.Replays
         public void AddEvent(ReplayEvent replayEvent)
         {
             _pendingEvents.Add(replayEvent);
+            OnEventAdded?.Invoke(replayEvent);
         }
 
         public void RegisterObjectHandler(ReplayObjectHandler handler)
@@ -175,7 +177,7 @@ namespace SkillcadeSDK.Replays
             
             var writer = new ReplayWriter(binaryWriter);
             writer.WriteInt(tick);
-            
+
             writer.WriteInt(_pendingEvents.Count);
             foreach (var pendingEvent in _pendingEvents)
             {
@@ -194,11 +196,13 @@ namespace SkillcadeSDK.Replays
                 objectHandler.Write(writer);
             }
 
+            // Debug.Log($"[ReplayWriteService] Write {_activeObjects.Count} objects to replay");
+
             var frameData = stream.ToArray();
             int frameId = _localFrameData.Count;
             _localFrameData.Add(frameData);
             
-            //Debug.Log($"[ReplayWriteService] Frame {frameId} on tick {tick} write {frameData.Length} bytes, as server: {isServer}");
+            // Debug.Log($"[ReplayWriteService] Frame {frameId} on tick {tick} write {frameData.Length} bytes, as server: {isServer}");
             
             if (isServer)
                 AddFrameFromClient(0, frameId, frameData);
