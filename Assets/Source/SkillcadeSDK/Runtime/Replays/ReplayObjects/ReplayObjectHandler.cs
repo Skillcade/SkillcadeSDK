@@ -80,7 +80,7 @@ namespace SkillcadeSDK.Replays.Components
 
         public void Read(ReplayReader reader)
         {
-            Debug.Log($"[ReplayObjectHandler] Read object {ObjectId} in world {WorldId}");
+            Debug.Log($"[ReplayObjectHandler] Read object {ObjectId} in world {WorldId}, active: {_targetObject.activeSelf}");
             _targetObject.SetActive(true);
             int componentsCount = reader.ReadUshort();
             for (int i = 0; i < componentsCount; i++)
@@ -103,20 +103,6 @@ namespace SkillcadeSDK.Replays.Components
                 
                 component.Read(reader);
             }
-        }
-
-        public bool TryGetReplayComponent<T>(out T component) where T : IReplayComponent
-        {
-            component = default;
-            var type = typeof(T);
-            if (!_replayComponents.TryGetValue(type, out var componentBase))
-                return false;
-            
-            if (componentBase is not T typedComponent)
-                return false;
-            
-            component = typedComponent;
-            return true;
         }
     }
 }

@@ -16,6 +16,7 @@ public class WebBridge : MonoBehaviour, IInitializable, IDisposable
     [Inject] private readonly IConnectionController _connectionController;
     [Inject] private readonly ConnectionConfig _connectionConfig;
     
+#if UNITY_WEBGL && !UNITY_EDITOR
     [UsedImplicitly]
     [DllImport("__Internal")]
     private static extern void GameLoaded();
@@ -27,6 +28,7 @@ public class WebBridge : MonoBehaviour, IInitializable, IDisposable
     [UsedImplicitly]
     [DllImport("__Internal")]
     private static extern void QuitSinglePlayer();
+#endif
 
     public void Initialize()
     {
