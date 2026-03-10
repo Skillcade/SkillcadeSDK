@@ -15,5 +15,6 @@ namespace SkillcadeSDK.Common
         /// Duration to wait after the game finishes before transitioning, in seconds.
         /// </summary>
         float WaitAfterFinishSeconds { get; }
+        bool UseReplaysV1 { get; }
     }
 }

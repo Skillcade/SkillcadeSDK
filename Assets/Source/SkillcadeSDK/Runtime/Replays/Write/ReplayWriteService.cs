@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
+using SkillcadeSDK.Common;
 using SkillcadeSDK.Connection;
 using SkillcadeSDK.Replays.Components;
 using SkillcadeSDK.Replays.Events;
@@ -41,6 +42,7 @@ namespace SkillcadeSDK.Replays
 
         [Inject] private readonly GameVersionConfig _gameVersionConfig;
         [Inject] private readonly IConnectionController _connectionController;
+        [Inject] private readonly ISkillcadeConfig _skillcadeConfig;
 
 #if UNITY_SERVER || UNITY_EDITOR
         [Inject] private readonly ServerPayloadController _serverPayloadController;
@@ -103,7 +105,7 @@ namespace SkillcadeSDK.Replays
             if (_connectionController.ConnectionState == ConnectionState.SinglePlayer)
                 return;
             
-            _active = true;
+            _active = _skillcadeConfig.UseReplaysV1;
             _startTime = DateTime.UtcNow;
             _replayDataForClients.Clear();
             _localFrameData.Clear();
@@ -114,6 +116,8 @@ namespace SkillcadeSDK.Replays
         {
             OnWriteFinished?.Invoke(asServer);
             _active = false;
+            if (!_skillcadeConfig.UseReplaysV1)
+                return;
             
             if (asServer && _connectionController.ConnectionState != ConnectionState.SinglePlayer)
             {
@@ -158,7 +162,7 @@ namespace SkillcadeSDK.Replays
                 Debug.Log($"[ReplayService] Replay for {_replayDataForClients.Count} clients was written to {filePath}");
 #if UNITY_SERVER || UNITY_EDITOR
                 if (_serverPayloadController.Payload != null)
-                    _replaySendService.SendReplayFile(filePath);
+                    _replaySendService.SendReplayFile(filePath).DoNotAwait();
 #endif
             }
             
