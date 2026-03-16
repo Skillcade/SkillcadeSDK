@@ -116,9 +116,18 @@ namespace SkillcadeSDK.Replays
         {
             OnWriteFinished?.Invoke(asServer);
             _active = false;
-            if (!_skillcadeConfig.UseReplaysV1)
-                return;
+
+            if (_skillcadeConfig.UseReplaysV1)
+                WriteReplayToFile(asServer);
             
+            _replayDataForClients.Clear();
+            _localFrameData.Clear();
+            _activeObjects.Clear();
+            _pendingEvents.Clear();
+        }
+
+        private void WriteReplayToFile(bool asServer)
+        {
             if (asServer && _connectionController.ConnectionState != ConnectionState.SinglePlayer)
             {
                 var filePath = Path.Combine(Application.streamingAssetsPath, FileName);
@@ -165,11 +174,6 @@ namespace SkillcadeSDK.Replays
                     _replaySendService.SendReplayFile(filePath).DoNotAwait();
 #endif
             }
-            
-            _replayDataForClients.Clear();
-            _localFrameData.Clear();
-            _activeObjects.Clear();
-            _pendingEvents.Clear();
         }
 
         public void OnNetworkTick(int tick, bool isServer)
