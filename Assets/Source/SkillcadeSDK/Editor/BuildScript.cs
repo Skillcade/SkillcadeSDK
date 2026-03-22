@@ -14,7 +14,7 @@ namespace SkillcadeSDK.Editor
     {
         private const string BuildConfigArgument = "-buildConfig";
         private const string DefaultBuildPath = "Builds/";
-        private const string SkillcadeDebugDefine = "SKILLCADE_DEBUG;";
+        private const string SkillcadeDebugDefine = "SKILLCADE_DEBUG";
 
         [MenuItem("Assets/Build Configuration/Build From Selected Config", isValidateFunction: false)]
         public static void BuildFromSelectedConfig()
