@@ -219,7 +219,7 @@ namespace SkillcadeSDK.Replays
         public static string GetFileName()
         {
             var dateTime = DateTime.UtcNow;
-            var dateString = dateTime.ToString("YYYY-MM-DD_hh-mm-ss");
+            var dateString = dateTime.ToString("yyyy-MM-dd_hh-mm-ss");
             return $"replay_{dateString}.replay";
         }
     }
