@@ -12,7 +12,7 @@ namespace SkillcadeSDK.Replays
     /// </summary>
     public class ReplayFilePicker : MonoBehaviour
     {
-        private const string ReplayExtension = "replay";
+        private const string ReplayExtension = "replay,bin";
         private const string FileFilterDescription = "Replay Files";
 
         private event Action<ReplayFileResult> OnFileSelected;

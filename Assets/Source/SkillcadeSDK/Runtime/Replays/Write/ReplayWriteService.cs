@@ -27,8 +27,6 @@ namespace SkillcadeSDK.Replays
             public int FrameId;
             public byte[] FrameData;
         }
-        
-        private const string FileName = "replay.replay";
 
         public event Action<int, byte[]> OnFrameReady;
         public event Action OnWriteStarted;
@@ -130,7 +128,7 @@ namespace SkillcadeSDK.Replays
         {
             if (asServer && _connectionController.ConnectionState != ConnectionState.SinglePlayer)
             {
-                var filePath = Path.Combine(Application.streamingAssetsPath, FileName);
+                var filePath = Path.Combine(Application.streamingAssetsPath, GetFileName());
                 using var stream = new FileStream(filePath, FileMode.Create);
                 var writer = new BinaryWriter(stream);
 
@@ -216,6 +214,13 @@ namespace SkillcadeSDK.Replays
                 AddFrameFromClient(0, frameId, frameData);
             else
                 OnFrameReady?.Invoke(frameId, frameData);
+        }
+
+        public static string GetFileName()
+        {
+            var dateTime = DateTime.UtcNow;
+            var dateString = dateTime.ToString("YYYY-MM-DD_hh-mm-ss");
+            return $"replay_{dateString}.replay";
         }
     }
 }
