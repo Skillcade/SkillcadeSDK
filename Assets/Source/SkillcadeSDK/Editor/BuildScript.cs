@@ -161,7 +161,7 @@ namespace SkillcadeSDK.Editor
             }
             else
             {
-                Debug.Log("Build succeeded");
+                Debug.Log($"Build {config.name} succeeded");
                 if (Application.isBatchMode)
                     EditorApplication.Exit(0);
             }
