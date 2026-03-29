@@ -163,21 +163,15 @@ namespace SkillcadeSDK.Replays
                 var frames = new List<ReplayReadFrameData>();
                 for (int j = 0; j < frameCount; j++)
                 {
-                    int frameId = reader.ReadInt();
-                    int frameSize = reader.ReadInt();
-                    var frameData = binaryReader.ReadBytes(frameSize);
-                    
-                    using var frameStream = new MemoryStream(frameData);
-                    using var frameReader = new BinaryReader(frameStream);
-                    var replayReader = new ReplayReader(frameReader);
-                    int tick  = replayReader.ReadInt();
-                    
-                    frames.Add(new ReplayReadFrameData
+                    try
                     {
-                        FrameId = frameId,
-                        Data = frameData,
-                        Tick = tick,
-                    });
+                        ReadReplayFrameFromFile(reader, binaryReader, frames);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogError($"[ReplayReadService] Error reading frame {j}: {e}");
+                        break;
+                    }
                 }
 
                 var world = new ReplayClientWorld(clientId, frames, _defaultWorldTransparency);
@@ -186,6 +180,25 @@ namespace SkillcadeSDK.Replays
             }
 
             return true;
+        }
+
+        private static void ReadReplayFrameFromFile(ReplayReader reader, BinaryReader binaryReader, List<ReplayReadFrameData> frames)
+        {
+            int frameId = reader.ReadInt();
+            int frameSize = reader.ReadInt();
+            var frameData = binaryReader.ReadBytes(frameSize);
+                    
+            using var frameStream = new MemoryStream(frameData);
+            using var frameReader = new BinaryReader(frameStream);
+            var replayReader = new ReplayReader(frameReader);
+            int tick  = replayReader.ReadInt();
+                    
+            frames.Add(new ReplayReadFrameData
+            {
+                FrameId = frameId,
+                Data = frameData,
+                Tick = tick,
+            });
         }
 
         public void SetNormalizedTime(float value)
