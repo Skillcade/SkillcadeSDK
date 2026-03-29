@@ -13,9 +13,35 @@ namespace SkillcadeSDK.Replays
     {
         private const string TokenHeaderKey = "X-Game-Server-Token";
         
+        public bool ReplaySent { get; private set; }
+        
         [Inject] private readonly ServerPayloadController _serverPayloadController;
 
         public async Task SendReplayFile(string filePath)
+        {
+            try
+            {
+                await SendReplayFileInternal(filePath);   
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[ReplaySendService] Error on sending replay file: {e}");
+            }
+
+            ReplaySent = true;
+        }
+        
+        public void Reset() => ReplaySent = false;
+
+        public async Task WaitForReplaySent()
+        {
+            while (!ReplaySent)
+            {
+                await Task.Delay(1);
+            }
+        }
+
+        private async Task SendReplayFileInternal(string filePath)
         {
             if (!File.Exists(filePath))
             {
@@ -42,20 +68,13 @@ namespace SkillcadeSDK.Replays
 
             Debug.Log("[ReplaySendService] File opened, sending");
             
-            try
+            var httpClient = new HttpClient();
+            var response = await httpClient.PutAsync(_serverPayloadController.Payload.ReplayUploadUrl, content);
+            Debug.Log($"[ReplaySendService] replay file send, success: {response.IsSuccessStatusCode}");
+            if (!response.IsSuccessStatusCode)
             {
-                var httpClient = new HttpClient();
-                var response = await httpClient.PutAsync(_serverPayloadController.Payload.ReplayUploadUrl, content);
-                Debug.Log($"[ReplaySendService] replay file send, success: {response.IsSuccessStatusCode}");
-                if (!response.IsSuccessStatusCode)
-                {
-                    var error = await response.Content.ReadAsStringAsync();
-                    Debug.LogError($"[ReplaySendService] Failed to upload replay to S3. Status: {response.StatusCode}, Details: {error}");
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.LogError($"[ReplaySendService] Error on sending replay file: {e}");
+                var error = await response.Content.ReadAsStringAsync();
+                Debug.LogError($"[ReplaySendService] Failed to upload replay to S3. Status: {response.StatusCode}, Details: {error}");
             }
         }
     }
