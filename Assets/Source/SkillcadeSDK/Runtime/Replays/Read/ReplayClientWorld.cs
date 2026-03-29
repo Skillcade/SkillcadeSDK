@@ -168,7 +168,6 @@ namespace SkillcadeSDK.Replays
 
         private void ReadFrameInternal(int actualFrameId, bool isMovingBakwards)
         {
-            Debug.Log($"[ReplayClientWorld] Read frame {actualFrameId} in world {WorldId}");
             var frame = _frames[actualFrameId];
             
             using var stream = new MemoryStream(frame.Data);

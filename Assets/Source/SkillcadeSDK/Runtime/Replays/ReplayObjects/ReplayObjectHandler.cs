@@ -65,7 +65,6 @@ namespace SkillcadeSDK.Replays.Components
             }
 
             bool visible = transparency >= 1f;
-            Debug.Log($"[ReplayObjectHandler] Set object {ObjectId} in world {WorldId} visible: {visible}");
             _graphicsObject.SetActive(visible);
         }
 
@@ -80,7 +79,6 @@ namespace SkillcadeSDK.Replays.Components
 
         public void Read(ReplayReader reader)
         {
-            Debug.Log($"[ReplayObjectHandler] Read object {ObjectId} in world {WorldId}, active: {_targetObject.activeSelf}");
             _targetObject.SetActive(true);
             int componentsCount = reader.ReadUshort();
             for (int i = 0; i < componentsCount; i++)
