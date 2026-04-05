@@ -60,7 +60,7 @@ namespace SkillcadeSDK.Replays
         
         public void RegisterObject(ReplayObjectHandler handler)
         {
-            Debug.Log($"[ReplayClientWorld] Add object {handler.ObjectId} to world {handler.WorldId}");
+            // Debug.Log($"[ReplayClientWorld] Add object {handler.ObjectId} to world {handler.WorldId}");
             _replayObjects.Add(handler.ObjectId, handler);
             handler.SetVisible(IsActive ? 1f : Transparency);
         }
@@ -68,7 +68,7 @@ namespace SkillcadeSDK.Replays
         public void DeleteObject(int id, out ReplayObjectHandler handler)
         {
             _replayObjects.Remove(id, out handler);
-            Debug.Log($"[ReplayClientWorld] Remove object {handler.ObjectId} from world {handler.WorldId}");
+            // Debug.Log($"[ReplayClientWorld] Remove object {handler.ObjectId} from world {handler.WorldId}");
         }
 
         public void SetWorldActive(bool value)
