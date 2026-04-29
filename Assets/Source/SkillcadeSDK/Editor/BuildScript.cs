@@ -58,7 +58,7 @@ namespace SkillcadeSDK.Editor
                 var config = AssetDatabase.LoadAssetAtPath<BuildConfiguration>(configPath);
                 if (config != null)
                 {
-                    BuildFromConfig(config);
+                    BuildFromConfig(config, true);
                 }
                 else
                 {
@@ -73,9 +73,10 @@ namespace SkillcadeSDK.Editor
             }
         }
 
-        private static void BuildFromConfig(BuildConfiguration config)
+        private static void BuildFromConfig(BuildConfiguration config, bool skipLogs = false)
         {
-            Debug.Log($"Building from config: {config.name}");
+            if (!skipLogs)
+                Debug.Log($"Building from config: {config.name}");
 
             // 1. Setup Scene (ConnectionConfig & internal SceneNames)
             SetupBuildEnvironment(config);
@@ -158,10 +159,12 @@ namespace SkillcadeSDK.Editor
             var newDefines = string.Join(';', newDefinesList);
             PlayerSettings.SetScriptingDefineSymbols(namedBuildTarget, newDefines);
             
-            Debug.Log($"Result defines: {newDefines}");
+            if (!skipLogs)
+                Debug.Log($"Result defines: {newDefines}");
             
             // 4. Build
-            Debug.Log($"Building to: {buildPlayerOptions.locationPathName}");
+            if (!skipLogs)
+                Debug.Log($"Building to: {buildPlayerOptions.locationPathName}");
             var report = BuildPipeline.BuildPlayer(buildPlayerOptions);
             
             // Restore defines
@@ -175,7 +178,9 @@ namespace SkillcadeSDK.Editor
             }
             else
             {
-                Debug.Log($"Build {config.name} succeeded");
+                if (!skipLogs)
+                    Debug.Log($"Build {config.name} succeeded");
+                
                 if (Application.isBatchMode)
                     EditorApplication.Exit(0);
             }
