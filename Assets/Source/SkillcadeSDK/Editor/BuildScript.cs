@@ -37,6 +37,20 @@ namespace SkillcadeSDK.Editor
             return Selection.activeObject is BuildConfiguration;
         }
 
+        [MenuItem("Assets/Build Configuration/Open Build Folder", isValidateFunction: false)]
+        public static void OpenBuildFolder()
+        {
+            var config = Selection.activeObject as BuildConfiguration;
+            var buildPath = Path.GetFullPath(Path.Combine(DefaultBuildPath, config.BuildFolderName));
+            EditorUtility.RevealInFinder(buildPath);
+        }
+
+        [MenuItem("Assets/Build Configuration/Open Build Folder", isValidateFunction: true)]
+        public static bool OpenBuildFolderValidation()
+        {
+            return Selection.activeObject is BuildConfiguration;
+        }
+
         public static void BuildFromCommandLine()
         {
             if (TryGetArgumentValue(BuildConfigArgument, out var configPath))
