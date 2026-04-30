@@ -58,7 +58,7 @@ namespace SkillcadeSDK.Editor
                 var config = AssetDatabase.LoadAssetAtPath<BuildConfiguration>(configPath);
                 if (config != null)
                 {
-                    BuildFromConfig(config);
+                    BuildFromConfig(config, true);
                 }
                 else
                 {
