@@ -58,7 +58,7 @@ namespace SkillcadeSDK.Editor
                 var config = AssetDatabase.LoadAssetAtPath<BuildConfiguration>(configPath);
                 if (config != null)
                 {
-                    BuildFromConfig(config, true);
+                    BuildFromConfig(config);
                 }
                 else
                 {
@@ -75,8 +75,7 @@ namespace SkillcadeSDK.Editor
 
         private static void BuildFromConfig(BuildConfiguration config, bool skipLogs = false)
         {
-            if (!skipLogs)
-                Debug.Log($"Building from config: {config.name}");
+            Debug.Log($"Building from config: {config.name}, filename: {config.BuildFileName}, folder: {config.BuildFolderName}");
 
             // 1. Setup Scene (ConnectionConfig & internal SceneNames)
             SetupBuildEnvironment(config);
