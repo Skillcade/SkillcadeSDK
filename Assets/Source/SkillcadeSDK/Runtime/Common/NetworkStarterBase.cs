@@ -33,37 +33,54 @@ namespace SkillcadeSDK.Common
 
         public virtual void Initialize()
         {
+            Debug.Log("[NetworkStarterBase] Initialize() called");
+
             if (_connectionConfig == null)
             {
                 Debug.LogError("[NetworkStarterBase] Config is null");
                 return;
             }
 
+            Debug.Log("[NetworkStarterBase] Getting connection data...");
             _data = _connectionConfig.GetData();
-            
+            Debug.Log($"[NetworkStarterBase] Got data. Inspector mode: {_connectionMode}");
+
 #if !UNITY_EDITOR && UNITY_SERVER
             _connectionMode = _dedicatedServerMode;
+            Debug.Log($"[NetworkStarterBase] UNITY_SERVER: mode -> {_connectionMode}");
 #elif !UNITY_EDITOR && UNITY_WEBGL
             _connectionMode = _webGlMode;
+            Debug.Log($"[NetworkStarterBase] UNITY_WEBGL: mode -> {_connectionMode}");
 #endif
+
+            Debug.Log($"[NetworkStarterBase] Final mode: {_connectionMode}");
 
             if (_connectionMode == ConnectionMode.Server)
             {
+                Debug.Log("[NetworkStarterBase] Starting Server coroutine");
                 StartCoroutine(WaitAndStart(_connectionMode));
             }
             else if (_connectionMode == ConnectionMode.Client)
             {
                 if (_connectionConfig.SkillcadeHubIntegrated)
+                {
+                    Debug.Log("[NetworkStarterBase] Starting Client with Hub payload wait");
                     WaitForPayloadAndConnect(destroyCancellationToken).DoNotAwait();
+                }
                 else
+                {
+                    Debug.Log("[NetworkStarterBase] Starting Client (without Hub)");
                     StartCoroutine(WaitAndStart(_connectionMode));
+                }
             }
             else if (_connectionMode == ConnectionMode.SinglePlayer)
             {
+                Debug.Log("[NetworkStarterBase] Starting SinglePlayer coroutine");
                 StartCoroutine(WaitAndStart(_connectionMode));
             }
             else
             {
+                Debug.Log("[NetworkStarterBase] Mode is None, calling InitManualConnection");
                 InitManualConnection();
             }
         }
@@ -114,7 +131,9 @@ namespace SkillcadeSDK.Common
 
         private IEnumerator WaitAndStart(ConnectionMode connectionMode)
         {
+            Debug.Log($"[NetworkStarterBase] WaitAndStart: yielding one frame for mode={connectionMode}");
             yield return null;
+            Debug.Log($"[NetworkStarterBase] WaitAndStart: starting connection, mode={connectionMode}");
 
             if (connectionMode == ConnectionMode.Server)
                 StartServer();
@@ -122,6 +141,8 @@ namespace SkillcadeSDK.Common
                 StartClient();
             else if (connectionMode == ConnectionMode.SinglePlayer)
                 StartSinglePlayer();
+
+            Debug.Log($"[NetworkStarterBase] WaitAndStart: done for mode={connectionMode}");
         }
 
         protected void StartServer()
