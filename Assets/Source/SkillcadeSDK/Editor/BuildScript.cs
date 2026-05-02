@@ -200,6 +200,8 @@ namespace SkillcadeSDK.Editor
             Utils.ApplyConnectionConfigToGameScope(config.ConnectionConfig, so);
 
             so.ApplyModifiedProperties();
+            EditorUtility.SetDirty(gameScope);
+            PrefabUtility.RecordPrefabInstancePropertyModifications(gameScope);
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
         }

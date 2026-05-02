@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using SkillcadeSDK.Connection;
 using SkillcadeSDK.DI;
 using UnityEditor;
@@ -18,7 +18,10 @@ namespace SkillcadeSDK.Editor
                 return true;
             
             Debug.LogError($"BootstrapScene not found at: {BootstrapScenePath}");
-            EditorUtility.DisplayDialog("Error", "BootstrapScene not found", "OK");
+            if (!Application.isBatchMode)
+            {
+                EditorUtility.DisplayDialog("Error", "BootstrapScene not found", "OK");
+            }
             return false;
         }
         
@@ -27,6 +30,12 @@ namespace SkillcadeSDK.Editor
             if (!SceneManager.GetActiveScene().isDirty)
                 return;
             
+            if (Application.isBatchMode)
+            {
+                EditorSceneManager.SaveOpenScenes();
+                return;
+            }
+
             if (EditorUtility.DisplayDialog("Save Scene", "Current scene is dirty. Save?", "Yes", "No"))
                 EditorSceneManager.SaveOpenScenes();
         }
