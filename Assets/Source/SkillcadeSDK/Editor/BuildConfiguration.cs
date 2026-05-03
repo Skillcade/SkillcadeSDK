@@ -21,6 +21,9 @@ namespace SkillcadeSDK.Editor
         [Tooltip("The connection configuration to use for this build.")]
         public ConnectionConfig ConnectionConfig;
 
+        [Tooltip("The name of the ConnectionConfig asset (e.g. 'ProdConfig'). Used as a fallback if the direct reference is lost in batchmode.")]
+        public string ConnectionConfigName;
+
         [Tooltip("Scenes to be loaded additively by GameScope (Runtime).")]
         public string[] SceneNames;
 

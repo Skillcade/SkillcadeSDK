@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using SkillcadeSDK.Connection;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
@@ -75,6 +76,13 @@ namespace SkillcadeSDK.Editor
 
         private static void BuildFromConfig(BuildConfiguration config, bool skipLogs = false)
         {
+            if (config.ConnectionConfig == null && !string.IsNullOrEmpty(config.ConnectionConfigName))
+            {
+                config.ConnectionConfig = FindConnectionConfig(config.ConnectionConfigName);
+                if (config.ConnectionConfig != null && !skipLogs)
+                    Debug.Log($"[BuildScript] Restored ConnectionConfig via AssetDatabase: {config.ConnectionConfig.name}");
+            }
+
             Debug.Log($"Building from config: {config.name}, filename: {config.BuildFileName}, folder: {config.BuildFolderName}");
 
             // 1. Setup Scene (ConnectionConfig & internal SceneNames)
@@ -253,6 +261,18 @@ namespace SkillcadeSDK.Editor
                 var path = AssetDatabase.GUIDToAssetPath(guid);
                 if (Path.GetFileNameWithoutExtension(path) == sceneName)
                     return path;
+            }
+            return null;
+        }
+
+        private static ConnectionConfig FindConnectionConfig(string configName)
+        {
+            var guids = AssetDatabase.FindAssets($"{configName} t:ConnectionConfig");
+            foreach (var guid in guids)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guid);
+                if (Path.GetFileNameWithoutExtension(path) == configName)
+                    return AssetDatabase.LoadAssetAtPath<SkillcadeSDK.Connection.ConnectionConfig>(path);
             }
             return null;
         }
