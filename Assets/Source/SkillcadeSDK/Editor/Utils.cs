@@ -66,7 +66,7 @@ namespace SkillcadeSDK.Editor
             }
             else
             {
-                Debug.LogWarning("BuildConfiguration has no ConnectionConfig assigned.");
+                Debug.LogWarning("provided connection config is null");
             }
         }
     }

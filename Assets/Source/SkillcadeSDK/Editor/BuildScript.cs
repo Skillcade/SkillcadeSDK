@@ -76,31 +76,20 @@ namespace SkillcadeSDK.Editor
 
         private static void BuildFromConfig(BuildConfiguration config, bool skipLogs = false)
         {
-            var connectionConfig = config.ConnectionConfig;
-            if (!string.IsNullOrEmpty(config.ConnectionConfigName))
-            {
-                connectionConfig = FindConnectionConfig(config.ConnectionConfigName);
-                if (connectionConfig != null && !skipLogs)
-                    Debug.Log($"[BuildScript] Restored ConnectionConfig via AssetDatabase: {connectionConfig.name}");
-            }
-            else
-            {
-                Debug.LogError("[BuildScript] Connection config name is empty");
-                EditorApplication.Exit(1);
-                return;
-            }
-
-            if (connectionConfig == null && config.PipelineType != BuildPipelineType.ReplayViewer)
-            {
-                Debug.LogError("[BuildScript] Connection config is null!");
-                EditorApplication.Exit(1);
-                return;
-            }
-
             Debug.Log($"[BuildScript] Building from config: {config.name}, filename: {config.BuildFileName}, folder: {config.BuildFolderName}");
 
             // 1. Setup Scene (ConnectionConfig & internal SceneNames)
-            SetupBuildEnvironment(config, connectionConfig);
+            if (!TrySetupBuildEnvironment(config, skipLogs, out var connectionConfig))
+            {
+                Debug.LogError("[BuildScript] Can't setup build environment");
+                return;
+            }
+            
+            if (connectionConfig == null && config.PipelineType == BuildPipelineType.MainGame)
+            {
+                Debug.Log("[BuildScript] Still no connection config on main pipeline");
+                return;
+            }
 
             // 2. Prepare Build Settings
             var buildPlayerOptions = new BuildPlayerOptions();
@@ -217,19 +206,41 @@ namespace SkillcadeSDK.Editor
             }
         }
 
-        private static void SetupBuildEnvironment(BuildConfiguration config, ConnectionConfig connectionConfig)
+        private static bool TrySetupBuildEnvironment(BuildConfiguration config, bool skipLogs, out ConnectionConfig connectionConfig)
         {
+            connectionConfig = null;
             if (config.PipelineType == BuildPipelineType.ReplayViewer)
             {
                 Debug.Log($"[BuildScript] Skip setup environment - wrong pipeline type {config.PipelineType}");
-                return;
+                return true;
             }
             
             Utils.SaveCurrentSceneIfDirty();
             if (!Utils.TryLoadBootstrapSceneAndGetScope(out var scene, out var gameScope))
             {
                 Debug.LogError("[BuildScript] Can't get bootstrap scene or get scope");
-                return;
+                return false;
+            }
+            
+            connectionConfig = config.ConnectionConfig;
+            if (!string.IsNullOrEmpty(config.ConnectionConfigName))
+            {
+                connectionConfig = FindConnectionConfig(config.ConnectionConfigName);
+                if (connectionConfig != null && !skipLogs)
+                    Debug.Log($"[BuildScript] Restored ConnectionConfig via AssetDatabase: {connectionConfig.name}");
+            }
+            else
+            {
+                Debug.LogError("[BuildScript] Connection config name is empty");
+                EditorApplication.Exit(1);
+                return false;
+            }
+
+            if (connectionConfig == null && config.PipelineType != BuildPipelineType.ReplayViewer)
+            {
+                Debug.LogError("[BuildScript] Connection config is null!");
+                EditorApplication.Exit(1);
+                return false;
             }
 
             var so = new SerializedObject(gameScope);
@@ -244,7 +255,7 @@ namespace SkillcadeSDK.Editor
             {
                 Debug.LogError("[BuildScript] scope config is null");
                 EditorApplication.Exit(1);
-                return;
+                return false;
             }
             
             Debug.Log($"[BuildScript] scope config: {gameScope.Config.name}");
@@ -253,6 +264,7 @@ namespace SkillcadeSDK.Editor
             PrefabUtility.RecordPrefabInstancePropertyModifications(gameScope);
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
+            return true;
         }
 
         private static string FindScenePath(string sceneName)
