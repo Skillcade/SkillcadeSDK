@@ -76,24 +76,31 @@ namespace SkillcadeSDK.Editor
 
         private static void BuildFromConfig(BuildConfiguration config, bool skipLogs = false)
         {
-            if (config.ConnectionConfig == null && !string.IsNullOrEmpty(config.ConnectionConfigName))
+            var connectionConfig = config.ConnectionConfig;
+            if (!string.IsNullOrEmpty(config.ConnectionConfigName))
             {
-                config.ConnectionConfig = FindConnectionConfig(config.ConnectionConfigName);
-                if (config.ConnectionConfig != null && !skipLogs)
-                    Debug.Log($"[BuildScript] Restored ConnectionConfig via AssetDatabase: {config.ConnectionConfig.name}");
+                connectionConfig = FindConnectionConfig(config.ConnectionConfigName);
+                if (connectionConfig != null && !skipLogs)
+                    Debug.Log($"[BuildScript] Restored ConnectionConfig via AssetDatabase: {connectionConfig.name}");
+            }
+            else
+            {
+                Debug.LogError("[BuildScript] Connection config name is empty");
+                EditorApplication.Exit(1);
+                return;
             }
 
-            if (config.ConnectionConfig == null && config.PipelineType != BuildPipelineType.ReplayViewer)
+            if (connectionConfig == null && config.PipelineType != BuildPipelineType.ReplayViewer)
             {
                 Debug.LogError("[BuildScript] Connection config is null!");
                 EditorApplication.Exit(1);
                 return;
             }
 
-            Debug.Log($"Building from config: {config.name}, filename: {config.BuildFileName}, folder: {config.BuildFolderName}");
+            Debug.Log($"[BuildScript] Building from config: {config.name}, filename: {config.BuildFileName}, folder: {config.BuildFolderName}");
 
             // 1. Setup Scene (ConnectionConfig & internal SceneNames)
-            SetupBuildEnvironment(config);
+            SetupBuildEnvironment(config, connectionConfig);
 
             // 2. Prepare Build Settings
             var buildPlayerOptions = new BuildPlayerOptions();
@@ -122,9 +129,9 @@ namespace SkillcadeSDK.Editor
             }
             
             // Add scenes from ConnectionConfig logic
-            if (config.ConnectionConfig != null && config.ConnectionConfig.SceneNames != null)
+            if (connectionConfig != null && connectionConfig.SceneNames != null)
             {
-                foreach (var sceneName in config.ConnectionConfig.SceneNames)
+                foreach (var sceneName in connectionConfig.SceneNames)
                 {
                     var path = FindScenePath(sceneName);
                     if (!string.IsNullOrEmpty(path) && !scenes.Contains(path))
@@ -184,11 +191,11 @@ namespace SkillcadeSDK.Editor
             PlayerSettings.SetScriptingDefineSymbols(namedBuildTarget, newDefines);
             
             if (!skipLogs)
-                Debug.Log($"Result defines: {newDefines}");
+                Debug.Log($"[BuildScript] Result defines: {newDefines}");
             
             // 4. Build
             if (!skipLogs)
-                Debug.Log($"Building to: {buildPlayerOptions.locationPathName}");
+                Debug.Log($"[BuildScript] Building to: {buildPlayerOptions.locationPathName}");
             var report = BuildPipeline.BuildPlayer(buildPlayerOptions);
             
             // Restore defines
@@ -196,21 +203,21 @@ namespace SkillcadeSDK.Editor
 
             if (report.summary.result != BuildResult.Succeeded)
             {
-                Debug.LogError($"Build failed: {report.summary.result}");
+                Debug.LogError($"[BuildScript] Build failed: {report.summary.result}");
                 if (Application.isBatchMode)
                     EditorApplication.Exit(1);
             }
             else
             {
                 if (!skipLogs)
-                    Debug.Log($"Build {config.name} succeeded");
+                    Debug.Log($"[BuildScript] Build {config.name} succeeded");
                 
                 if (Application.isBatchMode)
                     EditorApplication.Exit(0);
             }
         }
 
-        private static void SetupBuildEnvironment(BuildConfiguration config)
+        private static void SetupBuildEnvironment(BuildConfiguration config, ConnectionConfig connectionConfig)
         {
             if (config.PipelineType == BuildPipelineType.ReplayViewer)
             {
@@ -228,7 +235,7 @@ namespace SkillcadeSDK.Editor
             var so = new SerializedObject(gameScope);
 
             Debug.Log("[BuildScript] applying scope config");
-            Utils.ApplyConnectionConfigToGameScope(config.ConnectionConfig, so);
+            Utils.ApplyConnectionConfigToGameScope(connectionConfig, so);
 
             Debug.Log("[BuildScript] Applying modified properties");
             so.ApplyModifiedProperties();
@@ -262,13 +269,21 @@ namespace SkillcadeSDK.Editor
 
         private static ConnectionConfig FindConnectionConfig(string configName)
         {
+            Debug.Log($"[BuildScript] Searching for connection config {configName}");
             var guids = AssetDatabase.FindAssets($"{configName} t:ConnectionConfig");
+            Debug.Log($"[BuildScript] Found {guids.Length} connection configs");
             foreach (var guid in guids)
             {
                 var path = AssetDatabase.GUIDToAssetPath(guid);
+                Debug.Log($"[BuildScript] Processing config {guid} with path {path}");
                 if (Path.GetFileNameWithoutExtension(path) == configName)
+                {
+                    Debug.Log($"[BuildScript] Found config at {path}");
                     return AssetDatabase.LoadAssetAtPath<ConnectionConfig>(path);
+                }
             }
+
+            Debug.Log($"[BuildScript] Connection config {configName} not found");
             return null;
         }
 
