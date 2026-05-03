@@ -9,6 +9,8 @@ namespace SkillcadeSDK.DI
 {
     public class GameScopeWithAdditionalScenes : LifetimeScope
     {
+        public ConnectionConfig Config => _connectionConfig;
+        
         [SerializeField] private string[] _sceneNames;
         [SerializeField] private MonoInstaller[] _rootInstallers;
         [SerializeField] private ConnectionConfig _connectionConfig;

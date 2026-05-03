@@ -83,11 +83,27 @@ namespace SkillcadeSDK.Editor
             // 2. Prepare Build Settings
             var buildPlayerOptions = new BuildPlayerOptions();
             
-            // Collect scenes: Bootstrap + Config Scenes + Extra Build Scenes
-            var scenes = new List<string>
+            // Collect scenes: Pipeline Start Scene + Config Scenes + Extra Build Scenes
+            var scenes = new List<string>();
+
+            if (config.PipelineType == BuildPipelineType.MainGame)
             {
-                Utils.BootstrapScenePath
-            };
+                scenes.Add(Utils.BootstrapScenePath);
+            }
+            else if (config.PipelineType == BuildPipelineType.ReplayViewer)
+            {
+                var replayScenePath = FindScenePath("ReplayScene");
+                if (!string.IsNullOrEmpty(replayScenePath))
+                {
+                    scenes.Add(replayScenePath);
+                }
+                else
+                {
+                    Debug.LogError("ReplayScene not found! Cannot build Replay Viewer pipeline.");
+                    if (Application.isBatchMode) EditorApplication.Exit(1);
+                    return;
+                }
+            }
 
             // Add scenes from GameScope logic (if valid)
             if (config.SceneNames != null)
@@ -187,19 +203,42 @@ namespace SkillcadeSDK.Editor
 
         private static void SetupBuildEnvironment(BuildConfiguration config)
         {
-            if (!Utils.VerifyBootrstapSceneExists())
+            if (config.PipelineType == BuildPipelineType.ReplayViewer)
+            {
+                Debug.Log($"[BuildScript] Skip setup environment - wrong pipeline type {config.PipelineType}");
                 return;
+            }
+
+            if (!Utils.VerifyBootrstapSceneExists())
+            {
+                Debug.LogError("[BuildScript] Bootstrap scene doesn't exist!");
+                return;
+            }
             
             Utils.SaveCurrentSceneIfDirty();
-            
             if (!Utils.TryLoadBootstrapSceneAndGetScope(out var scene, out var gameScope))
+            {
+                Debug.LogError("[BuildScript] Can't get bootstrap scene or get scope");
                 return;
+            }
 
             var so = new SerializedObject(gameScope);
-            
+
+            Debug.Log("[BuildScript] applying scope config");
             Utils.ApplyConnectionConfigToGameScope(config.ConnectionConfig, so);
 
+            Debug.Log("[BuildScript] Applying modified properties");
             so.ApplyModifiedProperties();
+
+            if (gameScope.Config == null)
+            {
+                Debug.LogError("[BuildScript] scope config is null");
+                EditorApplication.Exit(1);
+                return;
+            }
+            
+            Debug.Log($"[BuildScript] scope config: {gameScope.Config.name}");
+            
             EditorUtility.SetDirty(gameScope);
             PrefabUtility.RecordPrefabInstancePropertyModifications(gameScope);
             EditorSceneManager.MarkSceneDirty(scene);

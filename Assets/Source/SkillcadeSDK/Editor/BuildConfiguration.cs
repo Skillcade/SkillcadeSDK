@@ -4,9 +4,19 @@ using UnityEngine;
 
 namespace SkillcadeSDK.Editor
 {
+    public enum BuildPipelineType
+    {
+        MainGame,
+        ReplayViewer
+    }
+
     [CreateAssetMenu(fileName = "BuildConfiguration", menuName = "Configs/Build Configuration")]
     public class BuildConfiguration : ScriptableObject
     {
+        [Header("Pipeline")]
+        [Tooltip("Type of build pipeline to use. ReplayViewer skips BootstrapScene and networking setup.")]
+        public BuildPipelineType PipelineType = BuildPipelineType.MainGame;
+
         [Header("Runtime Configuration")]
         [Tooltip("The connection configuration to use for this build.")]
         public ConnectionConfig ConnectionConfig;

@@ -42,15 +42,22 @@ namespace SkillcadeSDK.Editor
         
         public static bool TryLoadBootstrapSceneAndGetScope(out Scene scene, out GameScopeWithAdditionalScenes gameScope)
         {
+            Debug.Log("[Utils] Loading bootstrap scene");
             scene = EditorSceneManager.OpenScene(BootstrapScenePath, OpenSceneMode.Single);
+            Debug.Log("[Utils] Loaded bootstrap scene");
+            
             var rootObjects = scene.GetRootGameObjects();
+            Debug.Log($"[Utils] Got {rootObjects.Length} root objects");
             gameScope = null;
 
             foreach (var rootObject in rootObjects)
             {
                 gameScope = rootObject.GetComponent<GameScopeWithAdditionalScenes>();
                 if (gameScope != null)
+                {
+                    Debug.Log("[Utils] Found game scope on bootstrap scene");
                     break;
+                }
             }
 
             if (gameScope == null)
@@ -58,7 +65,7 @@ namespace SkillcadeSDK.Editor
                 Debug.LogError("GameScopeWithAdditionalScenes not found in BootstrapScene");
                 return false;
             }
-
+            
             return true;
         }
 
