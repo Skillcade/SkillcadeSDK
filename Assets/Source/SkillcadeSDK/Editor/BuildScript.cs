@@ -83,6 +83,13 @@ namespace SkillcadeSDK.Editor
                     Debug.Log($"[BuildScript] Restored ConnectionConfig via AssetDatabase: {config.ConnectionConfig.name}");
             }
 
+            if (config.ConnectionConfig == null && config.PipelineType != BuildPipelineType.ReplayViewer)
+            {
+                Debug.LogError("[BuildScript] Connection config is null!");
+                EditorApplication.Exit(1);
+                return;
+            }
+
             Debug.Log($"Building from config: {config.name}, filename: {config.BuildFileName}, folder: {config.BuildFolderName}");
 
             // 1. Setup Scene (ConnectionConfig & internal SceneNames)
@@ -100,17 +107,7 @@ namespace SkillcadeSDK.Editor
             }
             else if (config.PipelineType == BuildPipelineType.ReplayViewer)
             {
-                var replayScenePath = FindScenePath("ReplayScene");
-                if (!string.IsNullOrEmpty(replayScenePath))
-                {
-                    scenes.Add(replayScenePath);
-                }
-                else
-                {
-                    Debug.LogError("ReplayScene not found! Cannot build Replay Viewer pipeline.");
-                    if (Application.isBatchMode) EditorApplication.Exit(1);
-                    return;
-                }
+                scenes.Add(Utils.ReplaysScenePath);
             }
 
             // Add scenes from GameScope logic (if valid)
@@ -148,7 +145,11 @@ namespace SkillcadeSDK.Editor
 
             buildPlayerOptions.scenes = scenes.ToArray();
             buildPlayerOptions.target = config.BuildTarget;
-            buildPlayerOptions.subtarget = (int)config.BuildSubtarget;
+            
+            if (config.BuildTarget != BuildTarget.WebGL)
+            {
+                buildPlayerOptions.subtarget = (int)config.BuildSubtarget;
+            }
 
             var buildPath = Path.Combine(DefaultBuildPath, config.BuildFolderName);
             if (!Directory.Exists(buildPath))
@@ -216,12 +217,6 @@ namespace SkillcadeSDK.Editor
                 Debug.Log($"[BuildScript] Skip setup environment - wrong pipeline type {config.PipelineType}");
                 return;
             }
-
-            if (!Utils.VerifyBootrstapSceneExists())
-            {
-                Debug.LogError("[BuildScript] Bootstrap scene doesn't exist!");
-                return;
-            }
             
             Utils.SaveCurrentSceneIfDirty();
             if (!Utils.TryLoadBootstrapSceneAndGetScope(out var scene, out var gameScope))
@@ -272,7 +267,7 @@ namespace SkillcadeSDK.Editor
             {
                 var path = AssetDatabase.GUIDToAssetPath(guid);
                 if (Path.GetFileNameWithoutExtension(path) == configName)
-                    return AssetDatabase.LoadAssetAtPath<SkillcadeSDK.Connection.ConnectionConfig>(path);
+                    return AssetDatabase.LoadAssetAtPath<ConnectionConfig>(path);
             }
             return null;
         }

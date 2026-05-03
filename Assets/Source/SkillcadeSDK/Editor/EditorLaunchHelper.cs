@@ -27,11 +27,7 @@ namespace SkillcadeSDK.Editor
 
         private static void ApplyConfiguration(BuildConfiguration config)
         {
-            if (!Utils.VerifyBootrstapSceneExists())
-                return;
-            
             Utils.SaveCurrentSceneIfDirty();
-
             if (!Utils.TryLoadBootstrapSceneAndGetScope(out var scene, out var gameScope))
                 return;
 

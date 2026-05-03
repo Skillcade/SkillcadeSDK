@@ -11,19 +11,7 @@ namespace SkillcadeSDK.Editor
     public static class Utils
     {
         public const string BootstrapScenePath = "Assets/Scenes/BootstrapScene.unity";
-        
-        public static bool VerifyBootrstapSceneExists()
-        {
-            if (File.Exists(BootstrapScenePath))
-                return true;
-            
-            Debug.LogError($"BootstrapScene not found at: {BootstrapScenePath}");
-            if (!Application.isBatchMode)
-            {
-                EditorUtility.DisplayDialog("Error", "BootstrapScene not found", "OK");
-            }
-            return false;
-        }
+        public const string ReplaysScenePath = "Assets/Scenes/ReplaysScene.unity";
         
         public static void SaveCurrentSceneIfDirty()
         {
