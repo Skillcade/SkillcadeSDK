@@ -11,7 +11,7 @@ namespace SkillcadeSDK.Editor
     public static class Utils
     {
         public const string BootstrapScenePath = "Assets/Scenes/BootstrapScene.unity";
-        public const string ReplaysScenePath = "Assets/Scenes/ReplaysScene.unity";
+        public const string ReplaysScenePath = "Assets/Scenes/ReplayScene.unity";
         
         public static void SaveCurrentSceneIfDirty()
         {
