@@ -55,11 +55,18 @@ namespace SkillcadeSDK.Events
     public readonly struct GameFinishedEvent : IGameEvent
     {
         public readonly int WinnerId;
+        public readonly string WinnerPlayerId;
         public readonly FinishReason FinishReason;
 
         public GameFinishedEvent(int winnerId, FinishReason finishReason)
+            : this(winnerId, null, finishReason)
+        {
+        }
+
+        public GameFinishedEvent(int winnerId, string winnerPlayerId, FinishReason finishReason)
         {
             WinnerId = winnerId;
+            WinnerPlayerId = winnerPlayerId;
             FinishReason = finishReason;
         }
     }
