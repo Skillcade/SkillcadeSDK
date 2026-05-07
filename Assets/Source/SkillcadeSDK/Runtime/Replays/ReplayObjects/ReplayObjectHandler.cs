@@ -22,7 +22,7 @@ namespace SkillcadeSDK.Replays.Components
         [SerializeField] private GameObject _targetObject;
         [SerializeField] private GameObject _graphicsObject;
 
-        [Inject] private readonly ReplayWriteService _replayWriteService;
+        [Inject] protected readonly ReplayWriteService ReplayWriteService;
         
         private Dictionary<Type, IReplayComponent> _replayComponents;
 
@@ -47,13 +47,13 @@ namespace SkillcadeSDK.Replays.Components
         {
             this.InjectToMe();
             if (!_isReplaying)
-                _replayWriteService.RegisterObjectHandler(this);
+                ReplayWriteService.RegisterObjectHandler(this);
         }
 
         protected void Unregister()
         {
             if (!_isReplaying)
-                _replayWriteService.UnregisterObjectHandler(this);
+                ReplayWriteService.UnregisterObjectHandler(this);
         }
 
         public virtual void SetVisible(float transparency)

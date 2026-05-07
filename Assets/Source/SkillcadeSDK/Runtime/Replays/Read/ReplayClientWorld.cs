@@ -209,12 +209,11 @@ namespace SkillcadeSDK.Replays
             {
                 int prefabId = reader.ReadInt();
                 int objectId = reader.ReadInt();
+                
                 if (!_replayObjects.TryGetValue(objectId, out var handler))
                 {
-                    Debug.LogError($"[ReplayReadService] Object {objectId} not found");
+                    Debug.LogError($"[ReplayReadService] Object {objectId} not found on frame {actualFrameId}, tick {Tick}");
                     int componentsCount = reader.ReadUshort();
-                
-                    Debug.Log($"[ReplayReadService] Got object {objectId} with prefab {prefabId} and {componentsCount} components");
                     for (int k = 0; k < componentsCount; k++)
                     {
                         int id = reader.ReadUshort();

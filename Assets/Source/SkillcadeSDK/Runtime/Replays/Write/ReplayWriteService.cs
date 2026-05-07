@@ -54,6 +54,7 @@ namespace SkillcadeSDK.Replays
 
         private int _frameId;
         private bool _active;
+        private bool _started;
         private DateTime _startTime;
 
         public void Initialize()
@@ -70,6 +71,12 @@ namespace SkillcadeSDK.Replays
         public void RegisterObjectHandler(ReplayObjectHandler handler)
         {
             // Debug.Log($"[ReplayWriteService] Register object {handler.ObjectId} with prefab {handler.PrefabId}");
+            if (!_started)
+                return;
+
+            if (_activeObjects.Contains(handler))
+                return;
+
             _activeObjects.Add(handler);
             AddEvent(new ObjectCreatedEvent(handler.ObjectId, handler.PrefabId, handler.transform.position));
             OnObjectRegistered?.Invoke(handler);
@@ -78,8 +85,17 @@ namespace SkillcadeSDK.Replays
         public void UnregisterObjectHandler(ReplayObjectHandler handler)
         {
             // Debug.Log($"[ReplayWriteService] Unregister object {handler.ObjectId} with prefab {handler.PrefabId}");
-            _activeObjects.Remove(handler);
-            AddEvent(new ObjectDestroyedEvent(handler.ObjectId, handler.PrefabId, handler.transform.position));
+            if (handler == null)
+                return;
+
+            if (!_started)
+                return;
+
+            if (!_activeObjects.Remove(handler))
+                return;
+
+            Vector2 position = handler.transform != null ? (Vector2)handler.transform.position : Vector2.zero;
+            AddEvent(new ObjectDestroyedEvent(handler.ObjectId, handler.PrefabId, position));
             OnObjectUnregistered?.Invoke(handler);
         }
 
@@ -104,9 +120,12 @@ namespace SkillcadeSDK.Replays
                 return;
             
             _active = _skillcadeConfig.UseReplaysV1;
+            _started = true;
             _startTime = DateTime.UtcNow;
             _replayDataForClients.Clear();
             _localFrameData.Clear();
+            _activeObjects.Clear();
+            _pendingEvents.Clear();
             OnWriteStarted?.Invoke();
         }
 
@@ -114,6 +133,7 @@ namespace SkillcadeSDK.Replays
         {
             OnWriteFinished?.Invoke(asServer);
             _active = false;
+            _started = false;
 
             if (_skillcadeConfig.UseReplaysV1)
                 WriteReplayToFile(asServer);
@@ -156,7 +176,9 @@ namespace SkillcadeSDK.Replays
                 {
                     writer.Write(clientData.Key); // client id
                     writer.Write(clientData.Value.Count); // frame count
+#if UNITY_EDITOR
                     Debug.Log($"[ReplayWriteService] Client {clientData.Key} has {clientData.Value.Count} frames");
+#endif
                     var orderedFrames = clientData.Value.OrderBy(x => x.FrameId);
                     foreach (var frameInfo in orderedFrames)
                     {
@@ -166,7 +188,9 @@ namespace SkillcadeSDK.Replays
                     }
                 }
                 
+#if UNITY_EDITOR
                 Debug.Log($"[ReplayService] Replay for {_replayDataForClients.Count} clients was written to {filePath}");
+#endif
 #if UNITY_SERVER || UNITY_EDITOR
                 if (_serverPayloadController.Payload != null)
                     _replaySendService.SendReplayFile(filePath).DoNotAwait();
@@ -192,6 +216,28 @@ namespace SkillcadeSDK.Replays
             }
             
             _pendingEvents.Clear();
+
+            int destroyedHandlerIndex = -1;
+            for (int i = 0; i < _activeObjects.Count; i++)
+            {
+                if (_activeObjects[i] == null)
+                {
+                    destroyedHandlerIndex = i;
+                    break;
+                }
+            }
+
+            if (destroyedHandlerIndex >= 0)
+            {
+#if UNITY_EDITOR
+                Debug.LogWarning("[ReplayWriteService] Found destroyed handler in active objects - cleaning up");
+#endif
+                for (int i = _activeObjects.Count - 1; i >= 0; i--)
+                {
+                    if (_activeObjects[i] == null)
+                        _activeObjects.RemoveAt(i);
+                }
+            }
 
             writer.WriteInt(_activeObjects.Count);
             foreach (var objectHandler in _activeObjects)
