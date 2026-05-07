@@ -36,7 +36,6 @@ namespace SkillcadeSDK.Replays
         public event Action<ReplayObjectHandler> OnObjectUnregistered;
 
         public IReadOnlyList<ReplayObjectHandler> ActiveObjects => _activeObjects;
-        public bool IsActive => _active;
 
         [Inject] private readonly GameVersionConfig _gameVersionConfig;
         [Inject] private readonly IConnectionController _connectionController;
@@ -70,13 +69,14 @@ namespace SkillcadeSDK.Replays
 
         public void RegisterObjectHandler(ReplayObjectHandler handler)
         {
-            // Debug.Log($"[ReplayWriteService] Register object {handler.ObjectId} with prefab {handler.PrefabId}");
+            // Debug.Log($"[ReplayWriteService] Call register object {handler.ObjectId} with prefab {handler.PrefabId}");
             if (!_started)
                 return;
 
             if (_activeObjects.Contains(handler))
                 return;
 
+            // Debug.Log($"[ReplayWriteService] Register object {handler.ObjectId} with prefab {handler.PrefabId}");
             _activeObjects.Add(handler);
             AddEvent(new ObjectCreatedEvent(handler.ObjectId, handler.PrefabId, handler.transform.position));
             OnObjectRegistered?.Invoke(handler);
@@ -84,7 +84,7 @@ namespace SkillcadeSDK.Replays
 
         public void UnregisterObjectHandler(ReplayObjectHandler handler)
         {
-            // Debug.Log($"[ReplayWriteService] Unregister object {handler.ObjectId} with prefab {handler.PrefabId}");
+            // Debug.Log($"[ReplayWriteService] Call unregister object {handler.ObjectId} with prefab {handler.PrefabId}");
             if (handler == null)
                 return;
 
@@ -94,6 +94,7 @@ namespace SkillcadeSDK.Replays
             if (!_activeObjects.Remove(handler))
                 return;
 
+            // Debug.Log($"[ReplayWriteService] Unregister object {handler.ObjectId} with prefab {handler.PrefabId}");
             Vector2 position = handler.transform != null ? (Vector2)handler.transform.position : Vector2.zero;
             AddEvent(new ObjectDestroyedEvent(handler.ObjectId, handler.PrefabId, position));
             OnObjectUnregistered?.Invoke(handler);
@@ -176,9 +177,7 @@ namespace SkillcadeSDK.Replays
                 {
                     writer.Write(clientData.Key); // client id
                     writer.Write(clientData.Value.Count); // frame count
-#if UNITY_EDITOR
                     Debug.Log($"[ReplayWriteService] Client {clientData.Key} has {clientData.Value.Count} frames");
-#endif
                     var orderedFrames = clientData.Value.OrderBy(x => x.FrameId);
                     foreach (var frameInfo in orderedFrames)
                     {
@@ -188,9 +187,7 @@ namespace SkillcadeSDK.Replays
                     }
                 }
                 
-#if UNITY_EDITOR
                 Debug.Log($"[ReplayService] Replay for {_replayDataForClients.Count} clients was written to {filePath}");
-#endif
 #if UNITY_SERVER || UNITY_EDITOR
                 if (_serverPayloadController.Payload != null)
                     _replaySendService.SendReplayFile(filePath).DoNotAwait();
