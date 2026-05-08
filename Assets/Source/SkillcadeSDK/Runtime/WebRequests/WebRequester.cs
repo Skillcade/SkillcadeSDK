@@ -44,13 +44,7 @@ namespace SkillcadeSDK.WebRequests
                 return;
             }
             
-            if (string.IsNullOrEmpty(winnerId))
-            {
-                Debug.LogError("[WebRequester] Winner id are empty");
-                return;
-            }
-            
-            string url = GetRequestUrl(winnerId);
+            string url = GetRequestUrl(_serverPayloadController.Payload.MatchId);
             Debug.Log($"[WebRequester] Create http client to {url}");
             var httpClient = new HttpClient
             {
