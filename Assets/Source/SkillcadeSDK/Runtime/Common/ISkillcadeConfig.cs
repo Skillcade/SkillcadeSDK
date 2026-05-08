@@ -16,5 +16,7 @@ namespace SkillcadeSDK.Common
         /// </summary>
         float WaitAfterFinishSeconds { get; }
         bool UseReplaysV1 { get; }
+
+        float GameTimerSeconds { get; }
     }
 }
