@@ -10,6 +10,8 @@ namespace SkillcadeSDK.Replays.GUI
         
         [SerializeField] public TMP_Text NicknameText;
         [SerializeField] public TMP_Text PingText;
+        
+        [Header("Can be null")]
         [SerializeField] public Button FollowButton;
     }
 }
